@@ -1,5 +1,7 @@
-package com.comp2042;
+package com.comp2042.app;
 
+import com.comp2042.logic.GameController;
+import com.comp2042.ui.GuiController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

@@ -1,4 +1,7 @@
-package com.comp2042;
+package com.comp2042.event;
+
+import com.comp2042.logic.DownData;
+import com.comp2042.logic.ViewData;
 
 public interface InputEventListener {
 
