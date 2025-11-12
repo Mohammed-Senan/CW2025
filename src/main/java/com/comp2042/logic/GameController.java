@@ -28,7 +28,7 @@ public class GameController implements InputEventListener {
             board.mergeBrickToBackground();
             clearRow = board.clearRows();
             if (clearRow.getLinesRemoved() > 0) {
-                int scoreBonus = 50 * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
+                scoreBonus = 50 * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
             }
             if (board.createNewBrick()) {

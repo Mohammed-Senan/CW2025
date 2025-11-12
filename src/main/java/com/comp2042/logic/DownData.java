@@ -4,6 +4,7 @@ public final class DownData {
     private final ClearRow clearRow;
     private final ViewData viewData;
     private final int scoreBonus;
+
     public DownData(ClearRow clearRow, ViewData viewData, int scoreBonus) {
         this.clearRow = clearRow;
         this.viewData = viewData;
@@ -17,6 +18,8 @@ public final class DownData {
     public ViewData getViewData() {
         return viewData;
     }
+
     public int getScoreBonus() {
         return scoreBonus;
+    }
 }
