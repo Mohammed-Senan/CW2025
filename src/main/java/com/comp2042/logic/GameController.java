@@ -10,7 +10,8 @@ public class GameController implements InputEventListener {
     private Board board = new SimpleBoard(25, 10);
 
     private final GuiController viewGuiController;
-
+    private static final int SOFT_DROP_SCORE = 1;
+    private static final int LINE_SCORE_MULTIPLIER = 50;
     public GameController(GuiController c) {
         viewGuiController = c;
         board.createNewBrick();
@@ -28,7 +29,7 @@ public class GameController implements InputEventListener {
             board.mergeBrickToBackground();
             clearRow = board.clearRows();
             if (clearRow.getLinesRemoved() > 0) {
-                scoreBonus = 50 * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
+                scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
             }
             if (board.createNewBrick()) {
@@ -39,7 +40,7 @@ public class GameController implements InputEventListener {
 
         } else {
             if (event.getEventSource() == EventSource.USER) {
-                board.getScore().add(1);
+                board.getScore().add(SOFT_DROP_SCORE);
             }
         }
         return new DownData(clearRow, board.getViewData(), scoreBonus);
