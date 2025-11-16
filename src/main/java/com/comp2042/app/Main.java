@@ -1,6 +1,8 @@
 package com.comp2042.app;
 
+import com.comp2042.logic.Board;
 import com.comp2042.logic.GameController;
+import com.comp2042.logic.SimpleBoard;
 import com.comp2042.ui.GuiController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,8 +19,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         URL location = getClass().getClassLoader().getResource("gameLayout.fxml");
-        ResourceBundle resources = null;
-        FXMLLoader fxmlLoader = new FXMLLoader(location, resources);
+        FXMLLoader fxmlLoader = new FXMLLoader(location);
         Parent root = fxmlLoader.load();
         GuiController c = fxmlLoader.getController();
 
@@ -26,7 +27,9 @@ public class Main extends Application {
         Scene scene = new Scene(root, 300, 510);
         primaryStage.setScene(scene);
         primaryStage.show();
-        new GameController(c);
+        Board board = new SimpleBoard(25, 10);
+        GameController gameController = new GameController(c, board);
+        gameController.initGame();
     }
 
 

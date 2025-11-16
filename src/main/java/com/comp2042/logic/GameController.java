@@ -7,13 +7,16 @@ import com.comp2042.ui.GuiController;
 
 public class GameController implements InputEventListener {
 
-    private Board board = new SimpleBoard(25, 10);
+    private Board board;
 
     private final GuiController viewGuiController;
     private static final int SOFT_DROP_SCORE = 1;
     private static final int LINE_SCORE_MULTIPLIER = 50;
-    public GameController(GuiController c) {
+    public GameController(GuiController c, Board b) {
         viewGuiController = c;
+        this.board = b;
+    }
+    public void initGame() {
         board.createNewBrick();
         viewGuiController.setEventListener(this);
         viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
