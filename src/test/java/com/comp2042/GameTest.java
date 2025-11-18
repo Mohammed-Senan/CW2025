@@ -49,4 +49,16 @@ public class GameTest {
 
         verify(mockScore).add(1);
     }
+    @Test
+    public void testLineClearingAddsCorrectScore() {
+        int[][] emptyMatrix = new int[10][20];
+        com.comp2042.logic.ClearRow fakeClearRow = new com.comp2042.logic.ClearRow(2, emptyMatrix);
+
+        when(mockBoard.moveBrickDown()).thenReturn(false);
+        when(mockBoard.clearRows()).thenReturn(fakeClearRow);
+
+        gameController.onDownEvent(new MoveEvent(com.comp2042.event.EventType.DOWN, com.comp2042.event.EventSource.USER));
+
+        verify(mockScore).add(200);
+    }
 }

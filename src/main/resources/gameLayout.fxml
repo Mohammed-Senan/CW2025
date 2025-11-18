@@ -23,4 +23,5 @@
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>
+    <Label fx:id="scoreValue" layoutX="50" layoutY="10" text="Score: 0" style="-fx-font-size: 20px; -fx-text-fill: white;" />
 </Pane>
