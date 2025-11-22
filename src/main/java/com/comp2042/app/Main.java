@@ -22,12 +22,11 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(location);
         Parent root = fxmlLoader.load();
         GuiController c = fxmlLoader.getController();
-
-        primaryStage.setTitle("TetrisJFX");
+        primaryStage.setTitle("Tetris NEW VERSION");
         Scene scene = new Scene(root, 300, 510);
         primaryStage.setScene(scene);
         primaryStage.show();
-        Board board = new SimpleBoard(25, 10);
+        Board board = new SimpleBoard(25, 13);
         GameController gameController = new GameController(c, board);
         gameController.initGame();
     }

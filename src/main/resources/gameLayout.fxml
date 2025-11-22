@@ -6,22 +6,34 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import java.net.URL?>
-<Pane fx:controller="com.comp2042.ui.GuiController"
-      xmlns:fx="http://javafx.com/fxml">
-    <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
-    <BorderPane styleClass="gameBoard" fx:id="gameBoard">
-        <center>
-            <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30" layoutX="40"/>
-        </center>
-    </BorderPane>
+<?import javafx.geometry.Insets?>
+
+<StackPane fx:controller="com.comp2042.ui.GuiController"
+           xmlns:fx="http://javafx.com/fxml">
+
+    <Pane maxWidth="300" maxHeight="500">
+        <GridPane fx:id="brickPanel" vgap="1" hgap="1" prefWidth="300" prefHeight="500"/>
+        <BorderPane styleClass="gameBoard" fx:id="gameBoard" prefWidth="300" prefHeight="500">
+            <center>
+                <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30"/>
+            </center>
+        </BorderPane>
+    </Pane>
 
     <Group fx:id="groupNotification" layoutX="14" layoutY="203">
         <VBox alignment="CENTER">
             <GameOverPanel fx:id="gameOverPanel"/>
         </VBox>
     </Group>
+
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>
-    <Label fx:id="scoreValue" layoutX="50" layoutY="10" text="Score: 0" style="-fx-font-size: 20px; -fx-text-fill: white;" />
-</Pane>
+
+    <Label fx:id="scoreValue" text="Score: 0" style="-fx-font-size: 20px; -fx-text-fill: white;" StackPane.alignment="TOP_CENTER">
+        <StackPane.margin>
+            <Insets top="10.0"/>
+        </StackPane.margin>
+    </Label>
+
+</StackPane>
