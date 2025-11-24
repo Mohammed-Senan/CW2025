@@ -69,6 +69,22 @@ public class GuiController implements Initializable {
         gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.P) {
+                    if (isPause.getValue() == Boolean.FALSE) {
+                        timeLine.stop();
+                        isPause.setValue(Boolean.TRUE);
+                        gamePanel.setOpacity(0.5);
+                    } else {
+                        timeLine.play();
+                        isPause.setValue(Boolean.FALSE);
+                        gamePanel.setOpacity(1.0);
+                    }
+                    return;
+                }
+
+                if (isPause.getValue() == Boolean.TRUE) {
+                    return;
+                }
                 if (isPause.getValue() == Boolean.FALSE && isGameOver.getValue() == Boolean.FALSE) {
                     if (keyEvent.getCode() == KeyCode.LEFT || keyEvent.getCode() == KeyCode.A) {
                         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
