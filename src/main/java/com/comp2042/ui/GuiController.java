@@ -18,17 +18,20 @@ import javafx.fxml.Initializable;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.scene.layout.StackPane;
 
 public class GuiController implements Initializable {
 
@@ -39,6 +42,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private Group groupNotification;
+
+    @FXML
+    private StackPane mainMenu;
 
     @FXML
     private GridPane brickPanel;
@@ -71,7 +77,7 @@ public class GuiController implements Initializable {
             public void handle(KeyEvent keyEvent) {
                 if (keyEvent.getCode() == KeyCode.P) {
                     if (isPause.getValue() == Boolean.FALSE) {
-                        timeLine.stop();
+
                         isPause.setValue(Boolean.TRUE);
                         gamePanel.setOpacity(0.5);
                     } else {
@@ -114,6 +120,12 @@ public class GuiController implements Initializable {
         reflection.setFraction(0.8);
         reflection.setTopOpacity(0.9);
         reflection.setTopOffset(-12);
+
+
+        mainMenu.setVisible(true);
+
+        isPause.setValue(Boolean.TRUE);
+        gamePanel.setOpacity(0.5);
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
@@ -248,5 +260,19 @@ public class GuiController implements Initializable {
 
     public void pauseGame(ActionEvent actionEvent) {
         gamePanel.requestFocus();
+    }
+
+    @FXML
+    public void startGame() {
+        mainMenu.setVisible(false);
+        gamePanel.requestFocus();
+        timeLine.play();
+        isPause.setValue(Boolean.FALSE);
+        gamePanel.setOpacity(1.0);
+    }
+
+    @FXML
+    public void exitGame() {
+        System.exit(0);
     }
 }

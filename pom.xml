@@ -49,6 +49,11 @@
             <version>5.14.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>23</version>
+        </dependency>
     </dependencies>
 
     <build>
