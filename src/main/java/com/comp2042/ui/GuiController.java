@@ -32,6 +32,7 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.layout.StackPane;
+import com.comp2042.logic.HighScoreManager;
 
 public class GuiController implements Initializable {
 
@@ -51,6 +52,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private GameOverPanel gameOverPanel;
+
+    @FXML
+    private Label highScoreValue;
 
     @FXML
     private Label scoreValue;
@@ -126,6 +130,11 @@ public class GuiController implements Initializable {
 
         isPause.setValue(Boolean.TRUE);
         gamePanel.setOpacity(0.5);
+
+
+        HighScoreManager hsManager = new HighScoreManager();
+        int currentHigh = hsManager.loadHighScore();
+        highScoreValue.setText("High Score: " + currentHigh);
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {

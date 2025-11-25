@@ -38,6 +38,12 @@
         </StackPane.margin>
     </Label>
 
+    <Label fx:id="highScoreValue" text="High Score: 0" style="-fx-font-size: 15px; -fx-text-fill: white;" StackPane.alignment="TOP_CENTER">
+        <StackPane.margin>
+            <Insets top="35.0"/>
+        </StackPane.margin>
+    </Label>
+
     <StackPane fx:id="mainMenu" prefWidth="300" prefHeight="500">
 
         <ImageView fitWidth="310" fitHeight="560">
