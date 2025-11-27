@@ -70,3 +70,32 @@
     -fx-fill: yellow;
     -fx-text-fill: yellow;
 }
+
+.menuButton {
+    -fx-font-family: "Let's go Digital";
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00ffff;
+    -fx-background-color: linear-gradient(to bottom, rgba(0, 50, 100, 0.5), rgba(0, 0, 0, 0.6));
+    -fx-background-radius: 8px;
+    -fx-border-color: linear-gradient(to bottom, #00ffff, #0080ff);
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-padding: 12px 30px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.4), 8, 0.0, 0, 2);
+}
+
+.menuButton:hover {
+    -fx-background-color: linear-gradient(to bottom, rgba(0, 150, 200, 0.7), rgba(0, 100, 150, 0.8));
+    -fx-text-fill: #ffffff;
+    -fx-border-color: linear-gradient(to bottom, #00ffff, #00ccff);
+    -fx-border-width: 3px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.9), 15, 0.0, 0, 4);
+}
+
+.menuButton:pressed {
+    -fx-background-color: linear-gradient(to bottom, rgba(0, 200, 255, 0.8), rgba(0, 150, 200, 0.9));
+    -fx-text-fill: #ffff00;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 255, 255, 0.6), 5, 0.0, 0, 1);
+}

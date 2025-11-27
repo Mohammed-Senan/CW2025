@@ -44,23 +44,20 @@
         </StackPane.margin>
     </Label>
 
-    <StackPane fx:id="mainMenu" prefWidth="210" prefHeight="460" style="-fx-background-color: black;">
+    <StackPane fx:id="mainMenu" prefWidth="360" prefHeight="610" style="-fx-background-color: black;">
 
-        <ImageView fitWidth="210" fitHeight="460" preserveRatio="false">
+        <ImageView fitWidth="360" fitHeight="610" preserveRatio="false">
             <image>
                 <Image url="@logo.png"/>
             </image>
         </ImageView>
 
         <VBox alignment="CENTER" spacing="20">
-            <Button text="START GAME" onAction="#startGame"
-                    style="-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-font-size: 16px; -fx-border-color: white; -fx-border-width: 2px; -fx-padding: 10 20;"/>
+            <Button text="START GAME" onAction="#startGame" styleClass="menuButton"/>
 
-            <Button text="SETTINGS"
-                    style="-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-font-size: 16px; -fx-border-color: white; -fx-border-width: 2px; -fx-padding: 10 20;"/>
+            <Button text="SETTINGS" styleClass="menuButton"/>
 
-            <Button text="QUIT" onAction="#exitGame"
-                    style="-fx-background-color: rgba(0,0,0,0.7); -fx-text-fill: white; -fx-font-size: 16px; -fx-border-color: white; -fx-border-width: 2px; -fx-padding: 10 20;"/>
+            <Button text="QUIT" onAction="#exitGame" styleClass="menuButton"/>
         </VBox>
 
     </StackPane>
