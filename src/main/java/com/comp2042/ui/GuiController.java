@@ -33,6 +33,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.layout.StackPane;
 import com.comp2042.logic.HighScoreManager;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 
 public class GuiController implements Initializable {
 
@@ -64,6 +67,12 @@ public class GuiController implements Initializable {
 
     @FXML
     private Label scoreValue;
+
+    @FXML
+    private StackPane rootStackPane;
+
+    @FXML
+    private ImageView backgroundImageView;
 
     private Rectangle[][] displayMatrix;
 
@@ -126,6 +135,9 @@ public class GuiController implements Initializable {
         // Set up pause menu button handlers
         pauseMenuPanel.setOnResume(event -> resumeGame());
         pauseMenuPanel.setOnQuit(event -> exitGame());
+
+        // Set up responsive background image
+        setupBackgroundImage();
 
         final Reflection reflection = new Reflection();
         reflection.setFraction(0.8);
@@ -308,5 +320,13 @@ public class GuiController implements Initializable {
     @FXML
     public void exitGame() {
         System.exit(0);
+    }
+
+    private void setupBackgroundImage() {
+        // Bind background image size to StackPane size so it scales with window
+        if (backgroundImageView != null && rootStackPane != null) {
+            backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
+            backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());
+        }
     }
 }

@@ -25,6 +25,8 @@ public class Main extends Application {
         primaryStage.setTitle("Tetris NEW VERSION");
         Scene scene = new Scene(root, 360, 610);
         primaryStage.setScene(scene);
+        primaryStage.setMinWidth(360);
+        primaryStage.setMinHeight(610);
         primaryStage.show();
         Board board = new SimpleBoard(25, 13);
         GameController gameController = new GameController(c, board);

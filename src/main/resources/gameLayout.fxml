@@ -11,8 +11,14 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 
-<StackPane fx:controller="com.comp2042.ui.GuiController"
+<StackPane fx:id="rootStackPane" fx:controller="com.comp2042.ui.GuiController"
            xmlns:fx="http://javafx.com/fxml">
+
+    <ImageView fx:id="backgroundImageView" fitWidth="360" fitHeight="610" preserveRatio="false" pickOnBounds="true" mouseTransparent="true">
+        <image>
+            <Image url="@background.png"/>
+        </image>
+    </ImageView>
 
     <Pane maxWidth="300" maxHeight="500">
         <GridPane fx:id="brickPanel" vgap="1" hgap="1" prefWidth="300" prefHeight="500"/>
@@ -51,7 +57,7 @@
         </StackPane.margin>
     </Label>
 
-    <StackPane fx:id="mainMenu" prefWidth="360" prefHeight="610" style="-fx-background-color: black;">
+    <StackPane fx:id="mainMenu" prefWidth="360" prefHeight="610" style="-fx-background-color: #0a1520;">
 
         <ImageView fitWidth="360" fitHeight="610" preserveRatio="false">
             <image>
