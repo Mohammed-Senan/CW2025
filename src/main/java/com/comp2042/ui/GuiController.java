@@ -33,6 +33,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.layout.StackPane;
 import com.comp2042.logic.HighScoreManager;
+import com.comp2042.logic.GameController;
+import com.comp2042.logic.Board;
+import com.comp2042.logic.SimpleBoard;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -67,6 +70,12 @@ public class GuiController implements Initializable {
 
     @FXML
     private Label scoreValue;
+
+    @FXML
+    private Label levelValue;
+
+    @FXML
+    private Label blocksRemainingValue;
 
     @FXML
     private StackPane rootStackPane;
@@ -157,6 +166,14 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
+        // Clear existing rectangles if they exist
+        if (displayMatrix != null) {
+            gamePanel.getChildren().clear();
+        }
+        if (rectangles != null) {
+            brickPanel.getChildren().clear();
+        }
+        
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
         for (int i = 2; i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
@@ -180,12 +197,30 @@ public class GuiController implements Initializable {
         brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
 
 
+        updateTimelineSpeed(400);
+        timeLine.setCycleCount(Timeline.INDEFINITE);
+        timeLine.play();
+    }
+    
+    private void updateTimelineSpeed(int baseDelay) {
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        int delay = baseDelay;
+        if (eventListener != null && eventListener instanceof GameController) {
+            GameController gc = (GameController) eventListener;
+            if (gc.isLevelMode()) {
+                delay = gc.getSpeedDelay();
+            }
+        }
         timeLine = new Timeline(new KeyFrame(
-                Duration.millis(400),
+                Duration.millis(delay),
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
         ));
         timeLine.setCycleCount(Timeline.INDEFINITE);
-        timeLine.play();
+        if (isPause.getValue() == Boolean.FALSE) {
+            timeLine.play();
+        }
     }
 
     private Paint getFillColor(int i) {
@@ -269,6 +304,67 @@ public class GuiController implements Initializable {
     public void bindScore(IntegerProperty integerProperty) {
         scoreValue.textProperty().bind(integerProperty.asString("Score: %d"));
     }
+    
+    public void bindLevelInfo(com.comp2042.logic.LevelManager levelManager) {
+        if (levelValue != null && blocksRemainingValue != null) {
+            levelValue.setVisible(true);
+            blocksRemainingValue.setVisible(true);
+            levelValue.textProperty().bind(levelManager.currentLevelProperty().asString("Level: %d"));
+            
+            // Bind blocks remaining and score requirement
+            blocksRemainingValue.textProperty().bind(
+                javafx.beans.binding.Bindings.createStringBinding(
+                    () -> {
+                        int blocksLeft = levelManager.getBlocksRemaining();
+                        int scoreReq = levelManager.getScoreRequired();
+                        return "Blocks Left: " + blocksLeft + " | Score Need: " + scoreReq;
+                    },
+                    levelManager.blocksPlacedProperty(),
+                    levelManager.blocksRequiredProperty(),
+                    levelManager.scoreRequiredProperty()
+                )
+            );
+        }
+    }
+    
+    public void levelComplete(int newLevel) {
+        // Show level complete notification
+        NotificationPanel notificationPanel = new NotificationPanel("LEVEL " + (newLevel - 1) + " COMPLETE! LEVEL " + newLevel + " START!");
+        groupNotification.getChildren().add(notificationPanel);
+        notificationPanel.showScore(groupNotification.getChildren());
+        
+        // Update timeline speed for new level
+        if (eventListener != null && eventListener instanceof GameController) {
+            GameController gc = (GameController) eventListener;
+            updateTimelineSpeed(gc.getSpeedDelay());
+        }
+    }
+    
+    public void allLevelsComplete() {
+        // Show all levels complete notification
+        NotificationPanel notificationPanel = new NotificationPanel("ALL 5 LEVELS COMPLETE! YOU WIN!");
+        groupNotification.getChildren().add(notificationPanel);
+        notificationPanel.showScore(groupNotification.getChildren());
+        
+        // Stop the game or allow restart
+        if (timeLine != null) {
+            timeLine.pause();
+        }
+    }
+    
+    public void levelFailed(int level, int currentScore, int requiredScore) {
+        // Game over - level failed
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        gameOverPanel.setVisible(true);
+        isGameOver.setValue(Boolean.TRUE);
+        
+        // Show failure message
+        NotificationPanel notificationPanel = new NotificationPanel("LEVEL " + level + " FAILED! Score: " + currentScore + "/" + requiredScore);
+        groupNotification.getChildren().add(notificationPanel);
+        notificationPanel.showScore(groupNotification.getChildren());
+    }
 
     public void gameOver() {
         timeLine.stop();
@@ -311,10 +407,37 @@ public class GuiController implements Initializable {
     public void startGame() {
         mainMenu.setVisible(false);
         groupPauseMenu.setVisible(false);
+        if (levelValue != null) levelValue.setVisible(false);
+        if (blocksRemainingValue != null) blocksRemainingValue.setVisible(false);
         gamePanel.requestFocus();
         timeLine.play();
         isPause.setValue(Boolean.FALSE);
         gamePanel.setOpacity(1.0);
+    }
+    
+    @FXML
+    public void startLevelGame() {
+        mainMenu.setVisible(false);
+        groupPauseMenu.setVisible(false);
+        gameOverPanel.setVisible(false);
+        if (levelValue != null) levelValue.setVisible(true);
+        if (blocksRemainingValue != null) blocksRemainingValue.setVisible(true);
+        
+        // Stop existing timeline
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        
+        // Reinitialize game in level mode
+        Board board = new SimpleBoard(25, 13);
+        GameController newGameController = new GameController(this, board);
+        setEventListener(newGameController);
+        newGameController.initLevelGame();
+        
+        isPause.setValue(Boolean.FALSE);
+        isGameOver.setValue(Boolean.FALSE);
+        gamePanel.setOpacity(1.0);
+        gamePanel.requestFocus();
     }
 
     @FXML

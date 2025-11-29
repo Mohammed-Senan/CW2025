@@ -57,6 +57,18 @@
         </StackPane.margin>
     </Label>
 
+    <Label fx:id="levelValue" text="Level: 1" style="-fx-font-size: 18px; -fx-text-fill: #00ffff;" StackPane.alignment="TOP_LEFT" visible="false">
+        <StackPane.margin>
+            <Insets top="10.0" left="10.0"/>
+        </StackPane.margin>
+    </Label>
+
+    <Label fx:id="blocksRemainingValue" text="Blocks Left: 0" style="-fx-font-size: 16px; -fx-text-fill: #ffff00;" StackPane.alignment="TOP_LEFT" visible="false">
+        <StackPane.margin>
+            <Insets top="35.0" left="10.0"/>
+        </StackPane.margin>
+    </Label>
+
     <StackPane fx:id="mainMenu" prefWidth="360" prefHeight="610" style="-fx-background-color: #0a1520;">
 
         <ImageView fitWidth="360" fitHeight="610" preserveRatio="false">
@@ -67,6 +79,8 @@
 
         <VBox alignment="CENTER" spacing="20">
             <Button text="START GAME" onAction="#startGame" styleClass="menuButton"/>
+
+            <Button text="LEVEL" onAction="#startLevelGame" styleClass="menuButton"/>
 
             <Button text="SETTINGS" styleClass="menuButton"/>
 
