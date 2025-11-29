@@ -54,6 +54,12 @@ public class GuiController implements Initializable {
     private GameOverPanel gameOverPanel;
 
     @FXML
+    private Group groupPauseMenu;
+
+    @FXML
+    private PauseMenuPanel pauseMenuPanel;
+
+    @FXML
     private Label highScoreValue;
 
     @FXML
@@ -81,13 +87,9 @@ public class GuiController implements Initializable {
             public void handle(KeyEvent keyEvent) {
                 if (keyEvent.getCode() == KeyCode.P) {
                     if (isPause.getValue() == Boolean.FALSE) {
-
-                        isPause.setValue(Boolean.TRUE);
-                        gamePanel.setOpacity(0.5);
+                        pauseGame();
                     } else {
-                        timeLine.play();
-                        isPause.setValue(Boolean.FALSE);
-                        gamePanel.setOpacity(1.0);
+                        resumeGame();
                     }
                     return;
                 }
@@ -119,6 +121,11 @@ public class GuiController implements Initializable {
             }
         });
         gameOverPanel.setVisible(false);
+        groupPauseMenu.setVisible(false);
+
+        // Set up pause menu button handlers
+        pauseMenuPanel.setOnResume(event -> resumeGame());
+        pauseMenuPanel.setOnQuit(event -> exitGame());
 
         final Reflection reflection = new Reflection();
         reflection.setFraction(0.8);
@@ -260,20 +267,38 @@ public class GuiController implements Initializable {
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
         gameOverPanel.setVisible(false);
+        groupPauseMenu.setVisible(false);
         eventListener.createNewGame();
         gamePanel.requestFocus();
         timeLine.play();
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
+        gamePanel.setOpacity(1.0);
     }
 
-    public void pauseGame(ActionEvent actionEvent) {
+    public void pauseGame() {
+        if (isGameOver.getValue() == Boolean.TRUE) {
+            return; // Don't pause if game is over
+        }
+        timeLine.pause();
+        isPause.setValue(Boolean.TRUE);
+        gamePanel.setOpacity(0.5);
+        groupPauseMenu.setVisible(true);
+        gamePanel.requestFocus();
+    }
+
+    public void resumeGame() {
+        timeLine.play();
+        isPause.setValue(Boolean.FALSE);
+        gamePanel.setOpacity(1.0);
+        groupPauseMenu.setVisible(false);
         gamePanel.requestFocus();
     }
 
     @FXML
     public void startGame() {
         mainMenu.setVisible(false);
+        groupPauseMenu.setVisible(false);
         gamePanel.requestFocus();
         timeLine.play();
         isPause.setValue(Boolean.FALSE);
