@@ -39,6 +39,9 @@ import com.comp2042.logic.SimpleBoard;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.control.Button;
+import com.comp2042.ui.LevelSelectionPanel;
+import com.comp2042.ui.LevelCompletePanel;
 
 public class GuiController implements Initializable {
 
@@ -57,6 +60,9 @@ public class GuiController implements Initializable {
     private GridPane brickPanel;
 
     @FXML
+    private javafx.scene.layout.BorderPane gameBoard;
+
+    @FXML
     private GameOverPanel gameOverPanel;
 
     @FXML
@@ -64,6 +70,15 @@ public class GuiController implements Initializable {
 
     @FXML
     private PauseMenuPanel pauseMenuPanel;
+
+    @FXML
+    private Group groupLevelSelection;
+
+    @FXML
+    private LevelSelectionPanel levelSelectionPanel;
+
+    @FXML
+    private Group groupLevelComplete;
 
     @FXML
     private Label highScoreValue;
@@ -140,10 +155,58 @@ public class GuiController implements Initializable {
         });
         gameOverPanel.setVisible(false);
         groupPauseMenu.setVisible(false);
+        groupLevelSelection.setVisible(false);
+        groupLevelComplete.setVisible(false);
+        // Hide game board border and game panels initially (will show when game starts)
+        if (gameBoard != null) {
+            gameBoard.setVisible(false);
+        }
+        if (gamePanel != null) {
+            gamePanel.setVisible(false);
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(false);
+        }
 
         // Set up pause menu button handlers
         pauseMenuPanel.setOnResume(event -> resumeGame());
         pauseMenuPanel.setOnQuit(event -> exitGame());
+        
+        // Set up level selection panel handlers
+        if (levelSelectionPanel != null) {
+            levelSelectionPanel.setOnLevelSelected(event -> {
+                if (event.getSource() instanceof Button) {
+                    Button source = (Button) event.getSource();
+                    Object userData = source.getUserData();
+                    if (userData instanceof Integer) {
+                        int levelId = (Integer) userData;
+                        startLevelGame(levelId);
+                    } else {
+                        // Fallback: try to parse text
+                        try {
+                            int levelId = Integer.parseInt(source.getText());
+                            startLevelGame(levelId);
+                        } catch (NumberFormatException e) {
+                            // Ignore - locked level
+                        }
+                    }
+                }
+            });
+            levelSelectionPanel.setOnBackToMenu(event -> {
+                groupLevelSelection.setVisible(false);
+                mainMenu.setVisible(true);
+                // Hide game board border and game panels when returning to menu
+                if (gameBoard != null) {
+                    gameBoard.setVisible(false);
+                }
+                if (gamePanel != null) {
+                    gamePanel.setVisible(false);
+                }
+                if (brickPanel != null) {
+                    brickPanel.setVisible(false);
+                }
+            });
+        }
 
         // Set up responsive background image
         setupBackgroundImage();
@@ -327,29 +390,43 @@ public class GuiController implements Initializable {
         }
     }
     
-    public void levelComplete(int newLevel) {
-        // Show level complete notification
-        NotificationPanel notificationPanel = new NotificationPanel("LEVEL " + (newLevel - 1) + " COMPLETE! LEVEL " + newLevel + " START!");
-        groupNotification.getChildren().add(notificationPanel);
-        notificationPanel.showScore(groupNotification.getChildren());
-        
-        // Update timeline speed for new level
-        if (eventListener != null && eventListener instanceof GameController) {
-            GameController gc = (GameController) eventListener;
-            updateTimelineSpeed(gc.getSpeedDelay());
+    public void levelWon(int levelCompleted, boolean isLastLevel) {
+        // Pause the game
+        if (timeLine != null) {
+            timeLine.stop();
         }
+        isPause.setValue(Boolean.TRUE);
+        
+        // Show level complete panel
+        groupLevelComplete.setVisible(true);
+        groupLevelComplete.getChildren().clear();
+        
+        LevelCompletePanel newPanel = new LevelCompletePanel(levelCompleted, isLastLevel);
+        if (!isLastLevel) {
+            newPanel.setOnNextLevel(event -> {
+                int nextLevel = levelCompleted + 1;
+                startLevelGame(nextLevel);
+            });
+        }
+        newPanel.setOnMenu(event -> {
+            groupLevelComplete.setVisible(false);
+            mainMenu.setVisible(true);
+            if (levelSelectionPanel != null) {
+                levelSelectionPanel.refreshLevels();
+            }
+        });
+        VBox container = new VBox();
+        container.setAlignment(javafx.geometry.Pos.CENTER);
+        container.getChildren().add(newPanel);
+        groupLevelComplete.getChildren().add(container);
+    }
+    
+    public void levelComplete(int levelCompleted) {
+        levelWon(levelCompleted, false);
     }
     
     public void allLevelsComplete() {
-        // Show all levels complete notification
-        NotificationPanel notificationPanel = new NotificationPanel("ALL 5 LEVELS COMPLETE! YOU WIN!");
-        groupNotification.getChildren().add(notificationPanel);
-        notificationPanel.showScore(groupNotification.getChildren());
-        
-        // Stop the game or allow restart
-        if (timeLine != null) {
-            timeLine.pause();
-        }
+        levelWon(10, true);
     }
     
     public void levelFailed(int level, int currentScore, int requiredScore) {
@@ -407,6 +484,16 @@ public class GuiController implements Initializable {
     public void startGame() {
         mainMenu.setVisible(false);
         groupPauseMenu.setVisible(false);
+        // Show game board border and game panels for regular game
+        if (gameBoard != null) {
+            gameBoard.setVisible(true);
+        }
+        if (gamePanel != null) {
+            gamePanel.setVisible(true);
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(true);
+        }
         if (levelValue != null) levelValue.setVisible(false);
         if (blocksRemainingValue != null) blocksRemainingValue.setVisible(false);
         gamePanel.requestFocus();
@@ -416,10 +503,40 @@ public class GuiController implements Initializable {
     }
     
     @FXML
-    public void startLevelGame() {
+    public void showLevelSelection() {
         mainMenu.setVisible(false);
+        groupLevelSelection.setVisible(true);
+        // Hide game board border and game panels when showing level selection
+        if (gameBoard != null) {
+            gameBoard.setVisible(false);
+        }
+        if (gamePanel != null) {
+            gamePanel.setVisible(false);
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(false);
+        }
+        if (levelSelectionPanel != null) {
+            levelSelectionPanel.refreshLevels();
+        }
+    }
+    
+    public void startLevelGame(int levelId) {
+        mainMenu.setVisible(false);
+        groupLevelSelection.setVisible(false);
         groupPauseMenu.setVisible(false);
+        groupLevelComplete.setVisible(false);
         gameOverPanel.setVisible(false);
+        // Show game board border and game panels when starting a level
+        if (gameBoard != null) {
+            gameBoard.setVisible(true);
+        }
+        if (gamePanel != null) {
+            gamePanel.setVisible(true);
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(true);
+        }
         if (levelValue != null) levelValue.setVisible(true);
         if (blocksRemainingValue != null) blocksRemainingValue.setVisible(true);
         
@@ -428,16 +545,21 @@ public class GuiController implements Initializable {
             timeLine.stop();
         }
         
-        // Reinitialize game in level mode
+        // Reinitialize game in level mode with specific level
         Board board = new SimpleBoard(25, 13);
         GameController newGameController = new GameController(this, board);
         setEventListener(newGameController);
-        newGameController.initLevelGame();
+        newGameController.initLevelGame(levelId);
         
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
         gamePanel.setOpacity(1.0);
         gamePanel.requestFocus();
+    }
+    
+    @FXML
+    public void startLevelGame() {
+        startLevelGame(1);
     }
 
     @FXML

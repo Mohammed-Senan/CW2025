@@ -27,7 +27,11 @@ public class GameController implements InputEventListener {
     }
     
     public void initLevelGame() {
-        levelManager = new LevelManager();
+        initLevelGame(1);
+    }
+    
+    public void initLevelGame(int levelId) {
+        levelManager = new LevelManager(levelId);
         levelMode = true;
         board.createNewBrick();
         viewGuiController.setEventListener(this);
@@ -56,17 +60,15 @@ public class GameController implements InputEventListener {
                     return new DownData(clearRow, board.getViewData(), scoreBonus);
                 }
                 
-                // Check if level is complete
-                if (levelManager.checkLevelComplete(currentScore)) {
-                    if (levelManager.isMaxLevel()) {
-                        // Game completed all levels!
-                        viewGuiController.allLevelsComplete();
-                    } else {
-                        boolean advanced = levelManager.advanceLevel();
-                        if (advanced) {
-                            viewGuiController.levelComplete(levelManager.getCurrentLevel());
-                        }
-                    }
+                // Check if level is complete (score reached target AND blocks placed)
+                if (currentScore >= levelManager.getScoreRequired() && levelManager.getBlocksPlaced() >= levelManager.getBlocksRequired()) {
+                    // Unlock next level
+                    levelManager.unlockNextLevel();
+                    
+                    int completedLevel = levelManager.getCurrentLevel();
+                    // Notify GUI to pause and show completion screen
+                    viewGuiController.levelWon(completedLevel, levelManager.isMaxLevel());
+                    return new DownData(clearRow, board.getViewData(), scoreBonus);
                 }
             }
             
@@ -75,6 +77,17 @@ public class GameController implements InputEventListener {
             if (clearRow != null && clearRow.getLinesRemoved() > 0) {
                 scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
+                
+                // Check level completion after score update (in level mode)
+                if (levelMode && levelManager != null) {
+                    int currentScore = board.getScore().scoreProperty().get();
+                    if (currentScore >= levelManager.getScoreRequired() && levelManager.getBlocksPlaced() >= levelManager.getBlocksRequired()) {
+                        levelManager.unlockNextLevel();
+                        int completedLevel = levelManager.getCurrentLevel();
+                        viewGuiController.levelWon(completedLevel, levelManager.isMaxLevel());
+                        return new DownData(clearRow, board.getViewData(), scoreBonus);
+                    }
+                }
             }
 
             if (board.createNewBrick()) {
@@ -131,9 +144,7 @@ public class GameController implements InputEventListener {
     
     public int getSpeedDelay() {
         if (levelMode && levelManager != null) {
-            int baseDelay = 400;
-            int speedMultiplier = levelManager.getSpeedMultiplier();
-            return Math.max(100, baseDelay - (speedMultiplier - 1) * 30);
+            return levelManager.getDropSpeed();
         }
         return 400;
     }

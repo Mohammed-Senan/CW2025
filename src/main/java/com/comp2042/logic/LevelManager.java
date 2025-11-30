@@ -10,21 +10,48 @@ public class LevelManager {
     private final IntegerProperty blocksRequired = new SimpleIntegerProperty(0);
     private final IntegerProperty scoreRequired = new SimpleIntegerProperty(0);
     
-    // Level configuration: specific requirements per level
-    private static final int MAX_LEVEL = 5;
-    private static final int BLOCKS_PER_LEVEL = 50;
+    private LevelConfig currentLevelConfig;
+    private LevelConfig[] allLevels;
+    private LevelProgressManager progressManager;
     
-    // Score requirements for each level
-    private static final int[] SCORE_REQUIREMENTS = {500, 800, 1000, 1500, 3000};
+    // Level configuration: specific requirements per level
+    private static final int MAX_LEVEL = 10;
     
     public LevelManager() {
-        updateLevelRequirements();
+        this.progressManager = new LevelProgressManager();
+        this.allLevels = LevelConfig.createDefaultLevels();
+        updateLevelLockStatus();
+        setLevel(1);
+    }
+    
+    public LevelManager(int levelId) {
+        this.progressManager = new LevelProgressManager();
+        this.allLevels = LevelConfig.createDefaultLevels();
+        updateLevelLockStatus();
+        setLevel(levelId);
+    }
+    
+    public void setLevel(int levelId) {
+        if (levelId >= 1 && levelId <= MAX_LEVEL) {
+            currentLevelConfig = allLevels[levelId - 1];
+            if (!currentLevelConfig.isLocked()) {
+                currentLevel.set(levelId);
+                blocksPlaced.set(0);
+                updateLevelRequirements();
+            }
+        }
     }
     
     public void reset() {
-        currentLevel.set(1);
         blocksPlaced.set(0);
         updateLevelRequirements();
+    }
+    
+    private void updateLevelLockStatus() {
+        int highestUnlocked = progressManager.getHighestLevelUnlocked();
+        for (int i = 0; i < allLevels.length; i++) {
+            allLevels[i].setLocked(i + 1 > highestUnlocked);
+        }
     }
     
     public void incrementBlocksPlaced() {
@@ -62,14 +89,37 @@ public class LevelManager {
     }
     
     private void updateLevelRequirements() {
-        int level = currentLevel.get();
-        blocksRequired.set(BLOCKS_PER_LEVEL);
-        
-        if (level >= 1 && level <= MAX_LEVEL) {
-            scoreRequired.set(SCORE_REQUIREMENTS[level - 1]);
-        } else {
-            scoreRequired.set(SCORE_REQUIREMENTS[MAX_LEVEL - 1]);
+        if (currentLevelConfig != null) {
+            blocksRequired.set(currentLevelConfig.getBlocksRequired());
+            scoreRequired.set(currentLevelConfig.getTargetScore());
         }
+    }
+    
+    public LevelConfig getCurrentLevelConfig() {
+        return currentLevelConfig;
+    }
+    
+    public LevelConfig[] getAllLevels() {
+        return allLevels;
+    }
+    
+    public int getDropSpeed() {
+        return currentLevelConfig != null ? currentLevelConfig.getDropSpeed() : 400;
+    }
+    
+    public void unlockNextLevel() {
+        int nextLevel = currentLevel.get() + 1;
+        if (nextLevel <= MAX_LEVEL) {
+            progressManager.unlockLevel(nextLevel);
+            updateLevelLockStatus();
+        }
+    }
+    
+    public boolean isLevelLocked(int levelId) {
+        if (levelId >= 1 && levelId <= MAX_LEVEL) {
+            return allLevels[levelId - 1].isLocked();
+        }
+        return true;
     }
     
     public int getBlocksRemaining() {

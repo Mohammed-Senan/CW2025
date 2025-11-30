@@ -1,5 +1,7 @@
 <?import com.comp2042.ui.GameOverPanel?>
 <?import com.comp2042.ui.PauseMenuPanel?>
+<?import com.comp2042.ui.LevelSelectionPanel?>
+<?import com.comp2042.ui.LevelCompletePanel?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ToggleButton?>
@@ -41,6 +43,15 @@
         </VBox>
     </Group>
 
+    <Group fx:id="groupLevelSelection" layoutX="14" layoutY="203" visible="false">
+        <VBox alignment="CENTER">
+            <LevelSelectionPanel fx:id="levelSelectionPanel"/>
+        </VBox>
+    </Group>
+
+    <Group fx:id="groupLevelComplete" layoutX="14" layoutY="203" visible="false">
+    </Group>
+
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>
@@ -80,7 +91,7 @@
         <VBox alignment="CENTER" spacing="20">
             <Button text="START GAME" onAction="#startGame" styleClass="menuButton"/>
 
-            <Button text="LEVEL" onAction="#startLevelGame" styleClass="menuButton"/>
+            <Button text="LEVELS" onAction="#showLevelSelection" styleClass="menuButton"/>
 
             <Button text="SETTINGS" styleClass="menuButton"/>
 
