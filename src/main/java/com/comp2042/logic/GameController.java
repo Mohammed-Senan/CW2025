@@ -87,7 +87,7 @@ public class GameController implements InputEventListener {
                 scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
             }
-            
+
             if (levelMode) {
                 int[][] boardMatrix = board.getBoardMatrix();
                 boolean topOutDetected = false;
@@ -140,7 +140,7 @@ public class GameController implements InputEventListener {
                 }
             }
 
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+                viewGuiController.refreshGameBackground(board.getBoardMatrix());
 
         } else {
             if (event.getEventSource() == EventSource.USER) {

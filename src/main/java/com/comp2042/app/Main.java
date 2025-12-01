@@ -23,10 +23,10 @@ public class Main extends Application {
         Parent root = fxmlLoader.load();
         GuiController c = fxmlLoader.getController();
         primaryStage.setTitle("Tetris NEW VERSION");
-        Scene scene = new Scene(root, 360, 610);
+        Scene scene = new Scene(root, 700, 600);
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(360);
-        primaryStage.setMinHeight(610);
+        primaryStage.setMinWidth(700);
+        primaryStage.setMinHeight(600);
         primaryStage.show();
         Board board = new SimpleBoard(25, 13);
         GameController gameController = new GameController(c, board);

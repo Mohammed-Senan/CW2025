@@ -14,23 +14,72 @@
 <?import javafx.scene.image.ImageView?>
 
 <StackPane fx:id="rootStackPane" fx:controller="com.comp2042.ui.GuiController"
-           xmlns:fx="http://javafx.com/fxml">
+           xmlns:fx="http://javafx.com/fxml" styleClass="root-neon-bg">
 
-    <ImageView fx:id="backgroundImageView" fitWidth="360" fitHeight="610" preserveRatio="false" pickOnBounds="true" mouseTransparent="true">
-        <image>
-            <Image url="@background.png"/>
-        </image>
-    </ImageView>
+    <stylesheets>
+        <URL value="@window_style.css"/>
+    </stylesheets>
 
-    <Pane maxWidth="300" maxHeight="500">
-        <GridPane fx:id="brickPanel" vgap="1" hgap="1" prefWidth="300" prefHeight="500"/>
-        <BorderPane styleClass="gameBoard" fx:id="gameBoard" prefWidth="300" prefHeight="500">
-            <center>
-                <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30"/>
-            </center>
-        </BorderPane>
-    </Pane>
+    <BorderPane>
+        <!-- Left Region: Level and Blocks Stats -->
+        <left>
+            <VBox styleClass="hud-vbox-left" spacing="15" alignment="TOP_CENTER">
+                <!-- Level Panel -->
+                <VBox styleClass="hud-panel-left" alignment="CENTER" spacing="5">
+                    <Label text="LEVEL" styleClass="hud-title-label"/>
+                    <Label fx:id="levelValue" text="1" styleClass="level-value-label" visible="false"/>
+                </VBox>
 
+                <!-- Blocks Left and Score Need Panel -->
+                <VBox styleClass="hud-panel-left" alignment="CENTER" spacing="5">
+                    <Label text="BLOCKS LEFT" styleClass="hud-title-label"/>
+                    <Label fx:id="blocksRemainingValue" text="0" styleClass="hud-value-label" visible="false"/>
+                    <Label text="SCORE NEED" styleClass="hud-title-label"/>
+                    <Label fx:id="scoreNeedValue" text="0" styleClass="hud-value-label" visible="false"/>
+                </VBox>
+            </VBox>
+        </left>
+
+        <!-- Center Region: Game Board -->
+        <center>
+            <StackPane styleClass="game-board" alignment="CENTER">
+                <Pane styleClass="game-board-pane" maxWidth="300" maxHeight="500">
+                    <GridPane fx:id="brickPanel" styleClass="brick-panel-blocks" vgap="1" hgap="1" prefWidth="300" prefHeight="500"/>
+                    <BorderPane styleClass="gameBoard" fx:id="gameBoard" prefWidth="300" prefHeight="500">
+                        <center>
+                            <GridPane fx:id="gamePanel" styleClass="game-panel-blocks" hgap="1" vgap="1" layoutY="30"/>
+                        </center>
+                    </BorderPane>
+                </Pane>
+            </StackPane>
+        </center>
+
+        <!-- Right Region: Score Stats -->
+        <right>
+            <VBox styleClass="hud-vbox-right" spacing="15" alignment="TOP_CENTER">
+                <!-- Score Panel -->
+                <VBox styleClass="hud-panel-right" alignment="CENTER" spacing="5">
+                    <Label text="SCORE" styleClass="hud-title-label"/>
+                    <Label fx:id="scoreValue" text="0" styleClass="hud-value-label"/>
+                </VBox>
+
+                <!-- High Score Panel -->
+                <VBox styleClass="hud-panel-right" alignment="CENTER" spacing="5">
+                    <Label text="HIGH SCORE" styleClass="hud-title-label"/>
+                    <Label fx:id="highScoreValue" text="0" styleClass="hud-value-label"/>
+                </VBox>
+
+                <!-- Next Block Panel -->
+                <VBox styleClass="hud-panel-right" alignment="CENTER" spacing="5">
+                    <Label text="NEXT" styleClass="hud-title-label"/>
+                    <GridPane fx:id="nextBlockPanel" styleClass="next-block-panel" hgap="1" vgap="1" alignment="CENTER">
+                    </GridPane>
+                </VBox>
+            </VBox>
+        </right>
+    </BorderPane>
+
+    <!-- Overlay Groups for Menus and Panels -->
     <Group fx:id="groupNotification" layoutX="14" layoutY="203">
         <VBox alignment="CENTER">
             <GameOverPanel fx:id="gameOverPanel"/>
@@ -52,39 +101,12 @@
     <Group fx:id="groupLevelComplete" layoutX="14" layoutY="203" visible="false">
     </Group>
 
-    <stylesheets>
-        <URL value="@window_style.css"/>
-    </stylesheets>
+    <!-- Main Menu -->
+    <StackPane fx:id="mainMenu" prefWidth="700" prefHeight="600" style="-fx-background-color: #0a1520;">
 
-    <Label fx:id="scoreValue" text="Score: 0" style="-fx-font-size: 20px; -fx-text-fill: white;" StackPane.alignment="TOP_CENTER">
-        <StackPane.margin>
-            <Insets top="10.0"/>
-        </StackPane.margin>
-    </Label>
-
-    <Label fx:id="highScoreValue" text="High Score: 0" style="-fx-font-size: 15px; -fx-text-fill: white;" StackPane.alignment="TOP_CENTER">
-        <StackPane.margin>
-            <Insets top="35.0"/>
-        </StackPane.margin>
-    </Label>
-
-    <Label fx:id="levelValue" text="Level: 1" style="-fx-font-size: 18px; -fx-text-fill: #00ffff;" StackPane.alignment="TOP_LEFT" visible="false">
-        <StackPane.margin>
-            <Insets top="10.0" left="10.0"/>
-        </StackPane.margin>
-    </Label>
-
-    <Label fx:id="blocksRemainingValue" text="Blocks Left: 0" style="-fx-font-size: 16px; -fx-text-fill: #ffff00;" StackPane.alignment="TOP_LEFT" visible="false">
-        <StackPane.margin>
-            <Insets top="35.0" left="10.0"/>
-        </StackPane.margin>
-    </Label>
-
-    <StackPane fx:id="mainMenu" prefWidth="360" prefHeight="610" style="-fx-background-color: #0a1520;">
-
-        <ImageView fitWidth="360" fitHeight="610" preserveRatio="false">
+        <ImageView fitWidth="700" fitHeight="600" preserveRatio="false">
             <image>
-                <Image url="@logo.png"/>
+                <Image url="@logo1.png"/>
             </image>
         </ImageView>
 

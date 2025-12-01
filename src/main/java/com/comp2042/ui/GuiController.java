@@ -24,6 +24,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -60,6 +61,9 @@ public class GuiController implements Initializable {
     private GridPane brickPanel;
 
     @FXML
+    private GridPane nextBlockPanel;
+
+    @FXML
     private javafx.scene.layout.BorderPane gameBoard;
 
     @FXML
@@ -93,10 +97,13 @@ public class GuiController implements Initializable {
     private Label blocksRemainingValue;
 
     @FXML
+    private Label scoreNeedValue;
+
+    @FXML
     private StackPane rootStackPane;
 
     @FXML
-    private ImageView backgroundImageView;
+    private VBox hudPanel;
 
     private Rectangle[][] displayMatrix;
 
@@ -206,8 +213,6 @@ public class GuiController implements Initializable {
             });
         }
 
-        setupBackgroundImage();
-
         final Reflection reflection = new Reflection();
         reflection.setFraction(0.8);
         reflection.setTopOpacity(0.9);
@@ -219,10 +224,9 @@ public class GuiController implements Initializable {
         isPause.setValue(Boolean.TRUE);
         gamePanel.setOpacity(0.5);
 
-
         HighScoreManager hsManager = new HighScoreManager();
         int currentHigh = hsManager.loadHighScore();
-        highScoreValue.setText("High Score: " + currentHigh);
+        highScoreValue.setText(String.valueOf(currentHigh));
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
@@ -238,6 +242,8 @@ public class GuiController implements Initializable {
             for (int j = 0; j < boardMatrix[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
+                // CRITICAL: Explicitly remove any effects to ensure flat, matte blocks
+                rectangle.setEffect(null);
                 displayMatrix[i][j] = rectangle;
                 gamePanel.add(rectangle, j, i - 2);
             }
@@ -248,6 +254,8 @@ public class GuiController implements Initializable {
             for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(getFillColor(brick.getBrickData()[i][j]));
+                // CRITICAL: Explicitly remove any effects to ensure flat, matte blocks
+                rectangle.setEffect(null);
                 rectangles[i][j] = rectangle;
                 brickPanel.add(rectangle, j, i);
             }
@@ -255,6 +263,8 @@ public class GuiController implements Initializable {
         brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
         brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
 
+        // Initialize next block display
+        updateNextBlock(brick.getNextBrickData());
 
         updateTimelineSpeed(400);
         timeLine.setCycleCount(Timeline.INDEFINITE);
@@ -326,6 +336,41 @@ public class GuiController implements Initializable {
                     setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
                 }
             }
+            // Update next block display
+            updateNextBlock(brick.getNextBrickData());
+        }
+    }
+
+    private void updateNextBlock(int[][] nextBrickData) {
+        if (nextBlockPanel == null || nextBrickData == null) {
+            return;
+        }
+        
+        // Clear existing rectangles
+        nextBlockPanel.getChildren().clear();
+        
+        // Calculate center offset for better display
+        int maxWidth = 0;
+        int maxHeight = nextBrickData.length;
+        for (int[] row : nextBrickData) {
+            maxWidth = Math.max(maxWidth, row.length);
+        }
+        
+        // Create rectangles for the next block
+        int blockSize = 15; // Slightly smaller for preview
+        for (int i = 0; i < nextBrickData.length; i++) {
+            for (int j = 0; j < nextBrickData[i].length; j++) {
+                if (nextBrickData[i][j] != 0) {
+                    Rectangle rectangle = new Rectangle(blockSize, blockSize);
+                    rectangle.setFill(getFillColor(nextBrickData[i][j]));
+                    rectangle.setEffect(null);
+                    rectangle.setArcHeight(5);
+                    rectangle.setArcWidth(5);
+                    // Center the block in the grid
+                    int offsetX = (maxWidth - nextBrickData[i].length) / 2;
+                    nextBlockPanel.add(rectangle, j + offsetX, i);
+                }
+            }
         }
     }
 
@@ -341,6 +386,8 @@ public class GuiController implements Initializable {
         rectangle.setFill(getFillColor(color));
         rectangle.setArcHeight(9);
         rectangle.setArcWidth(9);
+        // CRITICAL: Explicitly remove any effects to ensure flat, matte blocks
+        rectangle.setEffect(null);
     }
 
     private void moveDown(MoveEvent event) {
@@ -401,6 +448,9 @@ public class GuiController implements Initializable {
         if (blocksRemainingValue != null) {
             blocksRemainingValue.setVisible(false);
         }
+        if (scoreNeedValue != null) {
+            scoreNeedValue.setVisible(false);
+        }
         
         if (groupNotification != null) {
             groupNotification.getChildren().clear();
@@ -412,22 +462,25 @@ public class GuiController implements Initializable {
     }
     
     public void bindLevelInfo(com.comp2042.logic.LevelManager levelManager) {
-        if (levelValue != null && blocksRemainingValue != null) {
+        if (levelValue != null && blocksRemainingValue != null && scoreNeedValue != null) {
             levelValue.setVisible(true);
             blocksRemainingValue.setVisible(true);
-            levelValue.textProperty().bind(levelManager.currentLevelProperty().asString("Level: %d"));
+            scoreNeedValue.setVisible(true);
+            levelValue.textProperty().bind(levelManager.currentLevelProperty().asString("%d"));
             
             blocksRemainingValue.textProperty().bind(
                 javafx.beans.binding.Bindings.createStringBinding(
                     () -> {
                         int blocksLeft = levelManager.getBlocksRemaining();
-                        int scoreReq = levelManager.getScoreRequired();
-                        return "Blocks Left: " + blocksLeft + " | Score Need: " + scoreReq;
+                        return String.valueOf(blocksLeft);
                     },
                     levelManager.blocksPlacedProperty(),
-                    levelManager.blocksRequiredProperty(),
-                    levelManager.scoreRequiredProperty()
+                    levelManager.blocksRequiredProperty()
                 )
+            );
+            
+            scoreNeedValue.textProperty().bind(
+                levelManager.scoreRequiredProperty().asString("%d")
             );
         }
     }
@@ -613,6 +666,9 @@ public class GuiController implements Initializable {
         if (blocksRemainingValue != null) {
             blocksRemainingValue.setVisible(false);
         }
+        if (scoreNeedValue != null) {
+            scoreNeedValue.setVisible(false);
+        }
         gamePanel.requestFocus();
         if (timeLine != null) {
             timeLine.play();
@@ -679,6 +735,9 @@ public class GuiController implements Initializable {
         if (blocksRemainingValue != null) {
             blocksRemainingValue.setVisible(true);
         }
+        if (scoreNeedValue != null) {
+            scoreNeedValue.setVisible(true);
+        }
         
         if (timeLine != null) {
             timeLine.stop();
@@ -705,10 +764,4 @@ public class GuiController implements Initializable {
         System.exit(0);
     }
 
-    private void setupBackgroundImage() {
-        if (backgroundImageView != null && rootStackPane != null) {
-            backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
-            backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());
-        }
-    }
 }
