@@ -3,7 +3,7 @@ package com.comp2042.logic;
 public class LevelConfig {
     private final int levelId;
     private final int targetScore;
-    private final int dropSpeed; // milliseconds between drops
+    private final int dropSpeed;
     private final int blocksRequired;
     private boolean isLocked;
     
@@ -39,14 +39,11 @@ public class LevelConfig {
         this.isLocked = locked;
     }
     
-    // Create default level configurations
     public static LevelConfig[] createDefaultLevels() {
         LevelConfig[] levels = new LevelConfig[10];
         
-        // Level 1: Easy, slow
         levels[0] = new LevelConfig(1, 500, 400, 50, false);
         
-        // Level 2-10: Increasing difficulty
         levels[1] = new LevelConfig(2, 800, 380, 50, true);
         levels[2] = new LevelConfig(3, 1000, 360, 50, true);
         levels[3] = new LevelConfig(4, 1500, 340, 50, true);

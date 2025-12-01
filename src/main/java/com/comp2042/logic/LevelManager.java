@@ -14,7 +14,6 @@ public class LevelManager {
     private LevelConfig[] allLevels;
     private LevelProgressManager progressManager;
     
-    // Level configuration: specific requirements per level
     private static final int MAX_LEVEL = 10;
     
     public LevelManager() {
@@ -63,7 +62,6 @@ public class LevelManager {
     }
     
     public boolean checkLevelFailed(int currentScore) {
-        // Check if player has placed all blocks but didn't reach required score
         if (blocksPlaced.get() >= blocksRequired.get() && currentScore < scoreRequired.get()) {
             return true;
         }
@@ -77,7 +75,7 @@ public class LevelManager {
             updateLevelRequirements();
             return true;
         }
-        return false; // Max level reached
+        return false;
     }
     
     public boolean isMaxLevel() {
@@ -127,7 +125,6 @@ public class LevelManager {
     }
     
     public int getSpeedMultiplier() {
-        // Each level makes the game faster (lower delay = faster)
         return Math.max(1, currentLevel.get());
     }
     

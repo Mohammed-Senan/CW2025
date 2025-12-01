@@ -10,8 +10,10 @@ import javafx.scene.layout.VBox;
 public class PauseMenuPanel extends BorderPane {
 
     private Button resumeButton;
+    private Button backToMenuButton;
     private Button quitButton;
     private EventHandler<ActionEvent> onResume;
+    private EventHandler<ActionEvent> onBackToMenu;
     private EventHandler<ActionEvent> onQuit;
 
     public PauseMenuPanel() {
@@ -33,6 +35,14 @@ public class PauseMenuPanel extends BorderPane {
             }
         });
 
+        backToMenuButton = new Button("BACK TO MENU");
+        backToMenuButton.getStyleClass().add("menuButton");
+        backToMenuButton.setOnAction(event -> {
+            if (onBackToMenu != null) {
+                onBackToMenu.handle(event);
+            }
+        });
+
         quitButton = new Button("QUIT");
         quitButton.getStyleClass().add("menuButton");
         quitButton.setOnAction(event -> {
@@ -41,13 +51,17 @@ public class PauseMenuPanel extends BorderPane {
             }
         });
 
-        buttonContainer.getChildren().addAll(resumeButton, quitButton);
+        buttonContainer.getChildren().addAll(resumeButton, backToMenuButton, quitButton);
         mainContainer.getChildren().addAll(pausedLabel, buttonContainer);
         setCenter(mainContainer);
     }
 
     public void setOnResume(EventHandler<ActionEvent> handler) {
         this.onResume = handler;
+    }
+
+    public void setOnBackToMenu(EventHandler<ActionEvent> handler) {
+        this.onBackToMenu = handler;
     }
 
     public void setOnQuit(EventHandler<ActionEvent> handler) {

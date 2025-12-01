@@ -157,7 +157,6 @@ public class GuiController implements Initializable {
         groupPauseMenu.setVisible(false);
         groupLevelSelection.setVisible(false);
         groupLevelComplete.setVisible(false);
-        // Hide game board border and game panels initially (will show when game starts)
         if (gameBoard != null) {
             gameBoard.setVisible(false);
         }
@@ -168,11 +167,13 @@ public class GuiController implements Initializable {
             brickPanel.setVisible(false);
         }
 
-        // Set up pause menu button handlers
         pauseMenuPanel.setOnResume(event -> resumeGame());
+        pauseMenuPanel.setOnBackToMenu(event -> {
+            cleanupGame();
+            mainMenu.setVisible(true);
+        });
         pauseMenuPanel.setOnQuit(event -> exitGame());
         
-        // Set up level selection panel handlers
         if (levelSelectionPanel != null) {
             levelSelectionPanel.setOnLevelSelected(event -> {
                 if (event.getSource() instanceof Button) {
@@ -182,12 +183,10 @@ public class GuiController implements Initializable {
                         int levelId = (Integer) userData;
                         startLevelGame(levelId);
                     } else {
-                        // Fallback: try to parse text
                         try {
                             int levelId = Integer.parseInt(source.getText());
                             startLevelGame(levelId);
                         } catch (NumberFormatException e) {
-                            // Ignore - locked level
                         }
                     }
                 }
@@ -195,7 +194,6 @@ public class GuiController implements Initializable {
             levelSelectionPanel.setOnBackToMenu(event -> {
                 groupLevelSelection.setVisible(false);
                 mainMenu.setVisible(true);
-                // Hide game board border and game panels when returning to menu
                 if (gameBoard != null) {
                     gameBoard.setVisible(false);
                 }
@@ -208,7 +206,6 @@ public class GuiController implements Initializable {
             });
         }
 
-        // Set up responsive background image
         setupBackgroundImage();
 
         final Reflection reflection = new Reflection();
@@ -229,7 +226,6 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
-        // Clear existing rectangles if they exist
         if (displayMatrix != null) {
             gamePanel.getChildren().clear();
         }
@@ -363,6 +359,53 @@ public class GuiController implements Initializable {
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
+    
+    private void cleanupGame() {
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        
+        if (eventListener != null) {
+            eventListener.createNewGame();
+        }
+        
+        isPause.setValue(Boolean.FALSE);
+        isGameOver.setValue(Boolean.FALSE);
+        
+        if (groupNotification != null) {
+            groupNotification.setVisible(false);
+        }
+        gameOverPanel.setVisible(false);
+        groupPauseMenu.setVisible(false);
+        groupLevelComplete.setVisible(false);
+        
+        if (gameBoard != null) {
+            gameBoard.setVisible(false);
+        }
+        if (gamePanel != null) {
+            gamePanel.setVisible(false);
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(false);
+        }
+        
+        if (scoreValue != null) {
+            scoreValue.setVisible(false);
+        }
+        if (highScoreValue != null) {
+            highScoreValue.setVisible(false);
+        }
+        if (levelValue != null) {
+            levelValue.setVisible(false);
+        }
+        if (blocksRemainingValue != null) {
+            blocksRemainingValue.setVisible(false);
+        }
+        
+        if (groupNotification != null) {
+            groupNotification.getChildren().clear();
+        }
+    }
 
     public void bindScore(IntegerProperty integerProperty) {
         scoreValue.textProperty().bind(integerProperty.asString("Score: %d"));
@@ -374,7 +417,6 @@ public class GuiController implements Initializable {
             blocksRemainingValue.setVisible(true);
             levelValue.textProperty().bind(levelManager.currentLevelProperty().asString("Level: %d"));
             
-            // Bind blocks remaining and score requirement
             blocksRemainingValue.textProperty().bind(
                 javafx.beans.binding.Bindings.createStringBinding(
                     () -> {
@@ -391,13 +433,11 @@ public class GuiController implements Initializable {
     }
     
     public void levelWon(int levelCompleted, boolean isLastLevel) {
-        // Pause the game
         if (timeLine != null) {
             timeLine.stop();
         }
         isPause.setValue(Boolean.TRUE);
         
-        // Show level complete panel
         groupLevelComplete.setVisible(true);
         groupLevelComplete.getChildren().clear();
         
@@ -430,23 +470,75 @@ public class GuiController implements Initializable {
     }
     
     public void levelFailed(int level, int currentScore, int requiredScore) {
-        // Game over - level failed
-        if (timeLine != null) {
-            timeLine.stop();
-        }
-        gameOverPanel.setVisible(true);
-        isGameOver.setValue(Boolean.TRUE);
+        gameOver();
         
-        // Show failure message
         NotificationPanel notificationPanel = new NotificationPanel("LEVEL " + level + " FAILED! Score: " + currentScore + "/" + requiredScore);
         groupNotification.getChildren().add(notificationPanel);
         notificationPanel.showScore(groupNotification.getChildren());
     }
 
     public void gameOver() {
-        timeLine.stop();
-        gameOverPanel.setVisible(true);
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        isPause.setValue(Boolean.TRUE);
         isGameOver.setValue(Boolean.TRUE);
+        
+        if (groupLevelComplete != null) {
+            groupLevelComplete.setVisible(false);
+        }
+        if (groupLevelSelection != null) {
+            groupLevelSelection.setVisible(false);
+        }
+        if (groupPauseMenu != null) {
+            groupPauseMenu.setVisible(false);
+        }
+        
+        if (groupNotification != null) {
+            groupNotification.setVisible(true);
+            if (rootStackPane != null && rootStackPane.getChildren().contains(groupNotification)) {
+                rootStackPane.getChildren().remove(groupNotification);
+                rootStackPane.getChildren().add(groupNotification);
+            }
+            groupNotification.toFront();
+        }
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(true);
+            gameOverPanel.toFront();
+        }
+        
+        if (rootStackPane != null && gameOverPanel != null) {
+            rootStackPane.getChildren().remove(gameOverPanel);
+            rootStackPane.getChildren().add(gameOverPanel);
+        }
+        
+        gamePanel.requestFocus();
+        
+        gameOverPanel.setOnRestart(event -> {
+            if (eventListener != null && eventListener instanceof GameController) {
+                GameController gc = (GameController) eventListener;
+                if (gc.isLevelMode() && gc.getLevelManager() != null) {
+                    int currentLevel = gc.getLevelManager().getCurrentLevel();
+                    startLevelGame(currentLevel);
+                } else {
+                    newGame(null);
+                }
+            } else {
+                newGame(null);
+            }
+        });
+        
+        gameOverPanel.setOnBackToMenu(event -> {
+            cleanupGame();
+            if (groupNotification != null) {
+                groupNotification.setVisible(false);
+            }
+            gameOverPanel.setVisible(false);
+            mainMenu.setVisible(true);
+            if (levelSelectionPanel != null) {
+                levelSelectionPanel.refreshLevels();
+            }
+        });
     }
 
     public void newGame(ActionEvent actionEvent) {
@@ -463,7 +555,7 @@ public class GuiController implements Initializable {
 
     public void pauseGame() {
         if (isGameOver.getValue() == Boolean.TRUE) {
-            return; // Don't pause if game is over
+            return;
         }
         timeLine.pause();
         isPause.setValue(Boolean.TRUE);
@@ -482,9 +574,24 @@ public class GuiController implements Initializable {
 
     @FXML
     public void startGame() {
+        cleanupGame();
+        
         mainMenu.setVisible(false);
         groupPauseMenu.setVisible(false);
-        // Show game board border and game panels for regular game
+        groupLevelSelection.setVisible(false);
+        groupLevelComplete.setVisible(false);
+        
+        if (groupNotification != null) {
+            groupNotification.setVisible(false);
+            groupNotification.getChildren().clear();
+        }
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(false);
+        }
+        
+        isPause.setValue(Boolean.FALSE);
+        isGameOver.setValue(Boolean.FALSE);
+        
         if (gameBoard != null) {
             gameBoard.setVisible(true);
         }
@@ -494,10 +601,22 @@ public class GuiController implements Initializable {
         if (brickPanel != null) {
             brickPanel.setVisible(true);
         }
-        if (levelValue != null) levelValue.setVisible(false);
-        if (blocksRemainingValue != null) blocksRemainingValue.setVisible(false);
+        if (scoreValue != null) {
+            scoreValue.setVisible(true);
+        }
+        if (highScoreValue != null) {
+            highScoreValue.setVisible(true);
+        }
+        if (levelValue != null) {
+            levelValue.setVisible(false);
+        }
+        if (blocksRemainingValue != null) {
+            blocksRemainingValue.setVisible(false);
+        }
         gamePanel.requestFocus();
-        timeLine.play();
+        if (timeLine != null) {
+            timeLine.play();
+        }
         isPause.setValue(Boolean.FALSE);
         gamePanel.setOpacity(1.0);
     }
@@ -506,7 +625,6 @@ public class GuiController implements Initializable {
     public void showLevelSelection() {
         mainMenu.setVisible(false);
         groupLevelSelection.setVisible(true);
-        // Hide game board border and game panels when showing level selection
         if (gameBoard != null) {
             gameBoard.setVisible(false);
         }
@@ -522,12 +640,24 @@ public class GuiController implements Initializable {
     }
     
     public void startLevelGame(int levelId) {
+        cleanupGame();
+        
         mainMenu.setVisible(false);
         groupLevelSelection.setVisible(false);
         groupPauseMenu.setVisible(false);
         groupLevelComplete.setVisible(false);
-        gameOverPanel.setVisible(false);
-        // Show game board border and game panels when starting a level
+        
+        if (groupNotification != null) {
+            groupNotification.setVisible(false);
+            groupNotification.getChildren().clear();
+        }
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(false);
+        }
+        
+        isPause.setValue(Boolean.FALSE);
+        isGameOver.setValue(Boolean.FALSE);
+        
         if (gameBoard != null) {
             gameBoard.setVisible(true);
         }
@@ -537,15 +667,23 @@ public class GuiController implements Initializable {
         if (brickPanel != null) {
             brickPanel.setVisible(true);
         }
-        if (levelValue != null) levelValue.setVisible(true);
-        if (blocksRemainingValue != null) blocksRemainingValue.setVisible(true);
+        if (scoreValue != null) {
+            scoreValue.setVisible(true);
+        }
+        if (highScoreValue != null) {
+            highScoreValue.setVisible(true);
+        }
+        if (levelValue != null) {
+            levelValue.setVisible(true);
+        }
+        if (blocksRemainingValue != null) {
+            blocksRemainingValue.setVisible(true);
+        }
         
-        // Stop existing timeline
         if (timeLine != null) {
             timeLine.stop();
         }
         
-        // Reinitialize game in level mode with specific level
         Board board = new SimpleBoard(25, 13);
         GameController newGameController = new GameController(this, board);
         setEventListener(newGameController);
@@ -568,7 +706,6 @@ public class GuiController implements Initializable {
     }
 
     private void setupBackgroundImage() {
-        // Bind background image size to StackPane size so it scales with window
         if (backgroundImageView != null && rootStackPane != null) {
             backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
             backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());

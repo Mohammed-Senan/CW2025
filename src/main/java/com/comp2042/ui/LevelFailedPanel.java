@@ -9,24 +9,30 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
-public class GameOverPanel extends BorderPane {
-
+public class LevelFailedPanel extends BorderPane {
+    
     private Button restartButton;
     private Button backToMenuButton;
     private EventHandler<ActionEvent> onRestart;
     private EventHandler<ActionEvent> onBackToMenu;
-
-    public GameOverPanel() {
+    
+    public LevelFailedPanel(int level, int currentScore, int requiredScore) {
         VBox mainContainer = new VBox(30);
-        mainContainer.setStyle("-fx-alignment: center;");
-
-        Label gameOverLabel = new Label("GAME OVER");
-        gameOverLabel.getStyleClass().add("gameOverStyle");
-        gameOverLabel.setStyle("-fx-font-family: 'Let's go Digital'; -fx-font-size: 48px; -fx-text-fill: #00ffff;");
-
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(40));
+        
+        Label titleLabel = new Label("LEVEL " + level + " FAILED!");
+        titleLabel.setStyle("-fx-font-family: 'Let's go Digital'; -fx-font-size: 32px; -fx-text-fill: #ff0000; -fx-font-weight: bold;");
+        
+        Label scoreLabel = new Label("Score: " + currentScore + " / " + requiredScore);
+        scoreLabel.setStyle("-fx-font-family: 'Let's go Digital'; -fx-font-size: 20px; -fx-text-fill: #ffff00; -fx-font-weight: bold;");
+        
+        Label messageLabel = new Label("You didn't reach the required score!");
+        messageLabel.setStyle("-fx-font-family: 'Let's go Digital'; -fx-font-size: 18px; -fx-text-fill: #ffffff;");
+        
         VBox buttonContainer = new VBox(20);
-        buttonContainer.setStyle("-fx-alignment: center;");
-
+        buttonContainer.setAlignment(Pos.CENTER);
+        
         restartButton = new Button("RESTART");
         restartButton.getStyleClass().add("menuButton");
         restartButton.setOnAction(event -> {
@@ -34,7 +40,7 @@ public class GameOverPanel extends BorderPane {
                 onRestart.handle(event);
             }
         });
-
+        
         backToMenuButton = new Button("BACK TO MENU");
         backToMenuButton.getStyleClass().add("menuButton");
         backToMenuButton.setOnAction(event -> {
@@ -42,17 +48,19 @@ public class GameOverPanel extends BorderPane {
                 onBackToMenu.handle(event);
             }
         });
-
+        
         buttonContainer.getChildren().addAll(restartButton, backToMenuButton);
-        mainContainer.getChildren().addAll(gameOverLabel, buttonContainer);
+        mainContainer.getChildren().addAll(titleLabel, scoreLabel, messageLabel, buttonContainer);
         setCenter(mainContainer);
     }
-
+    
     public void setOnRestart(EventHandler<ActionEvent> handler) {
         this.onRestart = handler;
     }
-
+    
     public void setOnBackToMenu(EventHandler<ActionEvent> handler) {
         this.onBackToMenu = handler;
     }
 }
+
+

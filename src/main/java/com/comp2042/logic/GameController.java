@@ -49,26 +49,35 @@ public class GameController implements InputEventListener {
         if (!canMove) {
             board.mergeBrickToBackground();
             
-            // Track block placement in level mode
             if (levelMode && levelManager != null) {
                 levelManager.incrementBlocksPlaced();
-                int currentScore = board.getScore().scoreProperty().get();
-                
-                // Check if level failed (placed all blocks but didn't reach score)
-                if (levelManager.checkLevelFailed(currentScore)) {
-                    viewGuiController.levelFailed(levelManager.getCurrentLevel(), currentScore, levelManager.getScoreRequired());
-                    return new DownData(clearRow, board.getViewData(), scoreBonus);
+            }
+            
+            if (levelMode) {
+                int[][] boardMatrix = board.getBoardMatrix();
+                boolean topOutDetected = false;
+                if (boardMatrix != null && boardMatrix.length > 0) {
+                    int numRows = boardMatrix.length;
+                    int numCols = boardMatrix[0] != null ? boardMatrix[0].length : 0;
+                    for (int row = 0; row <= 2 && row < numRows; row++) {
+                        if (boardMatrix[row] != null) {
+                            for (int col = 0; col < numCols && col < boardMatrix[row].length; col++) {
+                                if (boardMatrix[row][col] != 0) {
+                                    topOutDetected = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (topOutDetected) {
+                            break;
+                        }
+                    }
                 }
                 
-                // Check if level is complete (score reached target AND blocks placed)
-                if (currentScore >= levelManager.getScoreRequired() && levelManager.getBlocksPlaced() >= levelManager.getBlocksRequired()) {
-                    // Unlock next level
-                    levelManager.unlockNextLevel();
-                    
-                    int completedLevel = levelManager.getCurrentLevel();
-                    // Notify GUI to pause and show completion screen
-                    viewGuiController.levelWon(completedLevel, levelManager.isMaxLevel());
-                    return new DownData(clearRow, board.getViewData(), scoreBonus);
+                if (topOutDetected) {
+                    viewGuiController.gameOver();
+                    highScoreManager.saveHighScore(board.getScore().scoreProperty().get());
+                    return new DownData(null, board.getViewData(), 0);
                 }
             }
             
@@ -77,25 +86,61 @@ public class GameController implements InputEventListener {
             if (clearRow != null && clearRow.getLinesRemoved() > 0) {
                 scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
-                
-                // Check level completion after score update (in level mode)
-                if (levelMode && levelManager != null) {
-                    int currentScore = board.getScore().scoreProperty().get();
-                    if (currentScore >= levelManager.getScoreRequired() && levelManager.getBlocksPlaced() >= levelManager.getBlocksRequired()) {
-                        levelManager.unlockNextLevel();
-                        int completedLevel = levelManager.getCurrentLevel();
-                        viewGuiController.levelWon(completedLevel, levelManager.isMaxLevel());
-                        return new DownData(clearRow, board.getViewData(), scoreBonus);
+            }
+            
+            if (levelMode) {
+                int[][] boardMatrix = board.getBoardMatrix();
+                boolean topOutDetected = false;
+                if (boardMatrix != null && boardMatrix.length > 0) {
+                    int numRows = boardMatrix.length;
+                    int numCols = boardMatrix[0] != null ? boardMatrix[0].length : 0;
+                    for (int row = 0; row <= 2 && row < numRows; row++) {
+                        if (boardMatrix[row] != null) {
+                            for (int col = 0; col < numCols && col < boardMatrix[row].length; col++) {
+                                if (boardMatrix[row][col] != 0) {
+                                    topOutDetected = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (topOutDetected) {
+                            break;
+                        }
                     }
+                }
+                
+                if (topOutDetected) {
+                    viewGuiController.gameOver();
+                    highScoreManager.saveHighScore(board.getScore().scoreProperty().get());
+                    return new DownData(clearRow, board.getViewData(), scoreBonus);
                 }
             }
 
-            if (board.createNewBrick()) {
+            boolean cannotCreateNewBrick = board.createNewBrick();
+            if (cannotCreateNewBrick) {
                 viewGuiController.gameOver();
                 highScoreManager.saveHighScore(board.getScore().scoreProperty().get());
-            } else {
-                viewGuiController.refreshGameBackground(board.getBoardMatrix());
+                return new DownData(clearRow, board.getViewData(), scoreBonus);
             }
+            
+            if (levelMode && levelManager != null) {
+                int currentScore = board.getScore().scoreProperty().get();
+                
+                if (levelManager.checkLevelFailed(currentScore)) {
+                    viewGuiController.levelFailed(levelManager.getCurrentLevel(), currentScore, levelManager.getScoreRequired());
+                    return new DownData(clearRow, board.getViewData(), scoreBonus);
+                }
+                
+                if (currentScore >= levelManager.getScoreRequired() && levelManager.getBlocksPlaced() >= levelManager.getBlocksRequired()) {
+                    levelManager.unlockNextLevel();
+                    
+                    int completedLevel = levelManager.getCurrentLevel();
+                    viewGuiController.levelWon(completedLevel, levelManager.isMaxLevel());
+                    return new DownData(clearRow, board.getViewData(), scoreBonus);
+                }
+            }
+
+            viewGuiController.refreshGameBackground(board.getBoardMatrix());
 
         } else {
             if (event.getEventSource() == EventSource.USER) {

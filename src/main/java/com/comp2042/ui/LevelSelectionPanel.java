@@ -31,14 +31,11 @@ public class LevelSelectionPanel extends BorderPane {
     }
     
     private void createUI() {
-        // Create StackPane to layer background image and content
         StackPane stackPane = new StackPane();
         
-        // Add background image that fills the full window
         try {
             Image backgroundImage = new Image(getClass().getClassLoader().getResource("level.png").toExternalForm());
             backgroundImageView = new ImageView(backgroundImage);
-            // Bind image size to BorderPane size to fill full window
             backgroundImageView.fitWidthProperty().bind(this.widthProperty());
             backgroundImageView.fitHeightProperty().bind(this.heightProperty());
             backgroundImageView.setPreserveRatio(false);
@@ -47,7 +44,6 @@ public class LevelSelectionPanel extends BorderPane {
             backgroundImageView.setMouseTransparent(true);
             stackPane.getChildren().add(backgroundImageView);
         } catch (Exception e) {
-            // If image not found, continue without background
             System.out.println("Background image not found: " + e.getMessage());
         }
         
@@ -58,7 +54,6 @@ public class LevelSelectionPanel extends BorderPane {
         Label titleLabel = new Label("SELECT LEVEL");
         titleLabel.setStyle("-fx-font-family: 'Let's go Digital'; -fx-font-size: 36px; -fx-text-fill: #00ffff; -fx-font-weight: bold;");
         
-        // Create grid for level buttons (2 rows x 5 columns)
         levelGrid = new GridPane();
         levelGrid.setHgap(15);
         levelGrid.setVgap(15);
@@ -98,12 +93,10 @@ public class LevelSelectionPanel extends BorderPane {
         } else {
             button.setStyle("-fx-background-color: linear-gradient(to bottom, rgba(0, 150, 200, 0.7), rgba(0, 100, 150, 0.8)); -fx-text-fill: #ffffff; -fx-font-size: 24px; -fx-font-weight: bold; -fx-border-color: #00ffff; -fx-border-width: 2px; -fx-cursor: hand;");
             button.setText(String.valueOf(levelId));
-            final int finalLevelId = levelId; // Final variable for lambda
+            final int finalLevelId = levelId;
             button.setOnAction(event -> {
                 if (onLevelSelected != null) {
-                    // Store level ID in userData
                     button.setUserData(finalLevelId);
-                    // Pass the event with the button as source
                     onLevelSelected.handle(event);
                 }
             });

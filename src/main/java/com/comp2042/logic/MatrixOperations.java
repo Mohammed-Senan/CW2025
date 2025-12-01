@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 public class MatrixOperations {
 
 
-    //We don't want to instantiate this utility class
     private MatrixOperations(){
 
     }
