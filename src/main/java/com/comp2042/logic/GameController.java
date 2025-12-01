@@ -193,4 +193,8 @@ public class GameController implements InputEventListener {
         }
         return 400;
     }
+    
+    public Board getBoard() {
+        return board;
+    }
 }

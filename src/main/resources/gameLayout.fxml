@@ -44,6 +44,7 @@
         <center>
             <StackPane styleClass="game-board" alignment="CENTER">
                 <Pane styleClass="game-board-pane" maxWidth="300" maxHeight="500">
+                    <GridPane fx:id="ghostPanel" styleClass="ghost-panel-blocks" vgap="1" hgap="1" prefWidth="300" prefHeight="500" mouseTransparent="true"/>
                     <GridPane fx:id="brickPanel" styleClass="brick-panel-blocks" vgap="1" hgap="1" prefWidth="300" prefHeight="500"/>
                     <BorderPane styleClass="gameBoard" fx:id="gameBoard" prefWidth="300" prefHeight="500">
                         <center>

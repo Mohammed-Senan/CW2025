@@ -37,6 +37,7 @@ import com.comp2042.logic.HighScoreManager;
 import com.comp2042.logic.GameController;
 import com.comp2042.logic.Board;
 import com.comp2042.logic.SimpleBoard;
+import com.comp2042.logic.MatrixOperations;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -59,6 +60,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private GridPane brickPanel;
+
+    @FXML
+    private GridPane ghostPanel;
 
     @FXML
     private GridPane nextBlockPanel;
@@ -107,6 +111,8 @@ public class GuiController implements Initializable {
 
     private Rectangle[][] displayMatrix;
 
+    private int[][] currentBoardMatrix;
+
     private InputEventListener eventListener;
 
     private Rectangle[][] rectangles;
@@ -152,6 +158,10 @@ public class GuiController implements Initializable {
                     }
                     if (keyEvent.getCode() == KeyCode.DOWN || keyEvent.getCode() == KeyCode.S) {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+                        keyEvent.consume();
+                    }
+                    if (keyEvent.getCode() == KeyCode.SPACE) {
+                        hardDrop();
                         keyEvent.consume();
                     }
                 }
@@ -230,11 +240,15 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
+        currentBoardMatrix = boardMatrix; // Store board matrix for ghost piece calculation
         if (displayMatrix != null) {
             gamePanel.getChildren().clear();
         }
         if (rectangles != null) {
             brickPanel.getChildren().clear();
+        }
+        if (ghostPanel != null) {
+            ghostPanel.getChildren().clear();
         }
         
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
@@ -263,7 +277,8 @@ public class GuiController implements Initializable {
         brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
         brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
 
-        // Initialize next block display
+        // Initialize ghost piece and next block display
+        updateGhostPiece(boardMatrix, brick);
         updateNextBlock(brick.getNextBrickData());
 
         updateTimelineSpeed(400);
@@ -336,7 +351,10 @@ public class GuiController implements Initializable {
                     setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
                 }
             }
-            // Update next block display
+            // Update ghost piece and next block display
+            if (currentBoardMatrix != null) {
+                updateGhostPiece(currentBoardMatrix, brick);
+            }
             updateNextBlock(brick.getNextBrickData());
         }
     }
@@ -375,6 +393,7 @@ public class GuiController implements Initializable {
     }
 
     public void refreshGameBackground(int[][] board) {
+        currentBoardMatrix = board; // Store board matrix for ghost piece calculation
         for (int i = 2; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 setRectangleData(board[i][j], displayMatrix[i][j]);
@@ -388,6 +407,136 @@ public class GuiController implements Initializable {
         rectangle.setArcWidth(9);
         // CRITICAL: Explicitly remove any effects to ensure flat, matte blocks
         rectangle.setEffect(null);
+    }
+
+    /**
+     * Calculate the ghost piece position (where the block would land if dropped straight down)
+     */
+    private int calculateGhostY(int[][] boardMatrix, int[][] brickData, int currentX, int currentY) {
+        if (boardMatrix == null || brickData == null) {
+            return currentY;
+        }
+        
+        int ghostY = currentY;
+        // Keep moving down until we hit something
+        while (true) {
+            int testY = ghostY + 1;
+            if (MatrixOperations.intersect(boardMatrix, brickData, currentX, testY)) {
+                break; // Found collision, stop here
+            }
+            ghostY = testY;
+        }
+        return ghostY;
+    }
+
+    /**
+     * Update the ghost piece display (hollow outline showing where block will land)
+     */
+    private void updateGhostPiece(int[][] boardMatrix, ViewData brick) {
+        if (ghostPanel == null || boardMatrix == null || brick == null) {
+            return;
+        }
+        
+        // Clear existing ghost rectangles
+        ghostPanel.getChildren().clear();
+        
+        int[][] brickData = brick.getBrickData();
+        int currentX = brick.getxPosition();
+        int currentY = brick.getyPosition();
+        
+        // Calculate where the block would land
+        int ghostY = calculateGhostY(boardMatrix, brickData, currentX, currentY);
+        
+        // Only show ghost if it's different from current position
+        if (ghostY > currentY) {
+            // Create ghost rectangles as hollow outlines
+            for (int i = 0; i < brickData.length; i++) {
+                for (int j = 0; j < brickData[i].length; j++) {
+                    if (brickData[i][j] != 0) {
+                        Rectangle ghostRect = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                        // Hollow outline: no fill, stroke only
+                        ghostRect.setFill(Color.TRANSPARENT);
+                        Paint blockColor = getFillColor(brickData[i][j]);
+                        // Create a semi-transparent version of the block color (more visible)
+                        if (blockColor instanceof Color) {
+                            Color c = (Color) blockColor;
+                            Color ghostColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), 0.7);
+                            ghostRect.setStroke(ghostColor);
+                            ghostRect.setStrokeWidth(3.0);
+                        } else {
+                            ghostRect.setStroke(Color.WHITE.deriveColor(0, 1, 1, 0.7));
+                            ghostRect.setStrokeWidth(3.0);
+                        }
+                        ghostRect.setEffect(null);
+                        ghostRect.setArcHeight(9);
+                        ghostRect.setArcWidth(9);
+                        
+                        // Add rectangle to grid (positioning is handled by panel layout)
+                        ghostPanel.add(ghostRect, j, i);
+                    }
+                }
+            }
+            // Position ghost panel at the calculated drop position (same as brickPanel positioning)
+            ghostPanel.setLayoutX(gamePanel.getLayoutX() + currentX * ghostPanel.getVgap() + currentX * BRICK_SIZE);
+            ghostPanel.setLayoutY(-42 + gamePanel.getLayoutY() + ghostY * ghostPanel.getHgap() + ghostY * BRICK_SIZE);
+        }
+    }
+
+    /**
+     * Hard drop: instantly drop the block to the ghost position
+     */
+    private void hardDrop() {
+        if (eventListener == null || currentBoardMatrix == null || rectangles == null) {
+            return;
+        }
+        
+        // Get current brick position from event listener
+        // We need to get ViewData from the board, not from onDownEvent
+        if (eventListener instanceof GameController) {
+            GameController gc = (GameController) eventListener;
+            Board board = gc.getBoard();
+            if (board == null) {
+                return;
+            }
+            ViewData currentBrick = board.getViewData();
+            if (currentBrick == null) {
+                return;
+            }
+            
+            int[][] brickData = currentBrick.getBrickData();
+            int currentX = currentBrick.getxPosition();
+            int currentY = currentBrick.getyPosition();
+            
+            // Calculate ghost position
+            int ghostY = calculateGhostY(currentBoardMatrix, brickData, currentX, currentY);
+            
+            // Drop the block instantly to ghost position by repeatedly calling moveDown
+            if (ghostY > currentY) {
+                int targetY = ghostY;
+                while (currentY < targetY) {
+                    DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.USER));
+                    if (downData == null) {
+                        break;
+                    }
+                    ViewData newBrick = downData.getViewData();
+                    if (newBrick == null) {
+                        break;
+                    }
+                    int newY = newBrick.getyPosition();
+                    if (newY == currentY) {
+                        // Block can't move down anymore
+                        break;
+                    }
+                    currentY = newY;
+                    refreshBrick(newBrick);
+                    
+                    // If block merged (clearRow is not null), we're done
+                    if (downData.getClearRow() != null) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private void moveDown(MoveEvent event) {

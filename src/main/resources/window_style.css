@@ -39,6 +39,11 @@
     -fx-background-color: transparent;
 }
 
+.ghost-panel-blocks {
+    -fx-effect: none;
+    -fx-background-color: transparent;
+}
+
 /* Ensure the Pane wrapper is transparent */
 Pane {
     -fx-background-color: transparent !important;
