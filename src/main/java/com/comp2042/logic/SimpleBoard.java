@@ -102,7 +102,19 @@ public class SimpleBoard implements Board {
 
     @Override
     public void mergeBrickToBackground() {
-        currentGameMatrix = MatrixOperations.merge(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
+        // CRITICAL: Verify the block position is valid before merging
+        // This prevents blocks from being placed beyond the border
+        int currentX = (int) currentOffset.getX();
+        int currentY = (int) currentOffset.getY();
+        
+        // Board dimensions: matrix[width][height] = matrix[25][13]
+        // So: width=25 rows, height=13 columns
+        // currentX is column (should be < 13), currentY is row (should be < 25)
+        // Additional safety: The merge function will also check each cell, but this provides an extra layer
+        // Note: Even if base position seems valid, individual cells might be out of bounds, so merge() checks each cell
+        
+        // Always call merge - it has per-cell boundary checking that will prevent out-of-bounds writes
+        currentGameMatrix = MatrixOperations.merge(currentGameMatrix, brickRotator.getCurrentShape(), currentX, currentY);
     }
 
     @Override

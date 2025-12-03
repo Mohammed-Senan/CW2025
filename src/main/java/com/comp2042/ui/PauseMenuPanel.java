@@ -11,9 +11,11 @@ public class PauseMenuPanel extends BorderPane {
 
     private Button resumeButton;
     private Button backToMenuButton;
+    private Button settingsButton;
     private Button quitButton;
     private EventHandler<ActionEvent> onResume;
     private EventHandler<ActionEvent> onBackToMenu;
+    private EventHandler<ActionEvent> onSettings;
     private EventHandler<ActionEvent> onQuit;
 
     public PauseMenuPanel() {
@@ -43,6 +45,14 @@ public class PauseMenuPanel extends BorderPane {
             }
         });
 
+        settingsButton = new Button("SETTINGS");
+        settingsButton.getStyleClass().add("menuButton");
+        settingsButton.setOnAction(event -> {
+            if (onSettings != null) {
+                onSettings.handle(event);
+            }
+        });
+
         quitButton = new Button("QUIT");
         quitButton.getStyleClass().add("menuButton");
         quitButton.setOnAction(event -> {
@@ -51,10 +61,11 @@ public class PauseMenuPanel extends BorderPane {
             }
         });
 
-        buttonContainer.getChildren().addAll(resumeButton, backToMenuButton, quitButton);
+        buttonContainer.getChildren().addAll(resumeButton, backToMenuButton, settingsButton, quitButton);
         mainContainer.getChildren().addAll(pausedLabel, buttonContainer);
         setCenter(mainContainer);
     }
+    
 
     public void setOnResume(EventHandler<ActionEvent> handler) {
         this.onResume = handler;
@@ -62,6 +73,10 @@ public class PauseMenuPanel extends BorderPane {
 
     public void setOnBackToMenu(EventHandler<ActionEvent> handler) {
         this.onBackToMenu = handler;
+    }
+
+    public void setOnSettings(EventHandler<ActionEvent> handler) {
+        this.onSettings = handler;
     }
 
     public void setOnQuit(EventHandler<ActionEvent> handler) {

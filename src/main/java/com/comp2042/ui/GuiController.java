@@ -8,6 +8,7 @@ import com.comp2042.logic.DownData;
 import com.comp2042.logic.ViewData;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -18,12 +19,15 @@ import javafx.fxml.Initializable;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.effect.Reflection;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.BlurType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -33,21 +37,63 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
+import javafx.scene.control.Slider;
 import com.comp2042.logic.HighScoreManager;
 import com.comp2042.logic.GameController;
 import com.comp2042.logic.Board;
 import com.comp2042.logic.SimpleBoard;
 import com.comp2042.logic.MatrixOperations;
+import com.comp2042.logic.GameConfig;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import com.comp2042.ui.LevelSelectionPanel;
 import com.comp2042.ui.LevelCompletePanel;
+import com.comp2042.ui.SettingsPanel;
 
 public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 20;
+
+    /**
+     * Unified coordinate conversion: Converts grid coordinates to pixel coordinates.
+     * This method ensures that both active blocks and ghost blocks use the EXACT same
+     * formula for positioning, guaranteeing perfect alignment.
+     * 
+     * @param gridX The X grid coordinate (column index)
+     * @param gridY The Y grid coordinate (row index)
+     * @return A Point2D containing the pixel X and Y coordinates
+     */
+    private javafx.geometry.Point2D gridToPixel(int gridX, int gridY) {
+        if (brickPanel == null || gamePanel == null) {
+            return new javafx.geometry.Point2D(0, 0);
+        }
+        // CRITICAL: Use the exact same formula for both X and Y conversion
+        // This ensures that if ghostX == activeX, they will be pixel-perfectly aligned
+        double pixelX = gamePanel.getLayoutX() + gridX * brickPanel.getVgap() + gridX * BRICK_SIZE;
+        double pixelY = -42 + gamePanel.getLayoutY() + gridY * brickPanel.getHgap() + gridY * BRICK_SIZE;
+        return new javafx.geometry.Point2D(pixelX, pixelY);
+    }
+
+    /**
+     * Positions a GridPane (brickPanel or ghostPanel) at the specified grid coordinates.
+     * Uses the unified gridToPixel() method to ensure perfect alignment.
+     * 
+     * @param panel The GridPane to position (brickPanel or ghostPanel)
+     * @param gridX The X grid coordinate (column index)
+     * @param gridY The Y grid coordinate (row index)
+     */
+    private void positionPanelAtGrid(GridPane panel, int gridX, int gridY) {
+        if (panel == null) {
+            return;
+        }
+        javafx.geometry.Point2D pixelPos = gridToPixel(gridX, gridY);
+        panel.setLayoutX(pixelPos.getX());
+        panel.setLayoutY(pixelPos.getY());
+    }
 
     @FXML
     private GridPane gamePanel;
@@ -89,6 +135,12 @@ public class GuiController implements Initializable {
     private Group groupLevelComplete;
 
     @FXML
+    private Group groupSettings;
+
+    @FXML
+    private SettingsPanel settingsPanel;
+
+    @FXML
     private Label highScoreValue;
 
     @FXML
@@ -108,6 +160,36 @@ public class GuiController implements Initializable {
 
     @FXML
     private VBox hudPanel;
+
+    @FXML
+    private VBox hudVboxLeft;
+
+    @FXML
+    private VBox hudVboxRight;
+
+    @FXML
+    private VBox menuContainer;
+
+    @FXML
+    private StackPane settingsContainer;
+
+    @FXML
+    private HBox ghostModeSwitch;
+    
+    @FXML
+    private StackPane ghostModeTrack;
+    
+    @FXML
+    private Circle ghostModeThumb; // Defined in FXML, centered in StackPane
+    
+    @FXML
+    private Label ghostModeOffLabel;
+    
+    @FXML
+    private Label ghostModeOnLabel;
+    
+    @FXML
+    private Slider musicVolumeSlider;
 
     private Rectangle[][] displayMatrix;
 
@@ -174,6 +256,9 @@ public class GuiController implements Initializable {
         groupPauseMenu.setVisible(false);
         groupLevelSelection.setVisible(false);
         groupLevelComplete.setVisible(false);
+        if (groupSettings != null) {
+            groupSettings.setVisible(false);
+        }
         if (gameBoard != null) {
             gameBoard.setVisible(false);
         }
@@ -185,11 +270,83 @@ public class GuiController implements Initializable {
         }
 
         pauseMenuPanel.setOnResume(event -> resumeGame());
+        pauseMenuPanel.setOnSettings(event -> showPauseSettings());
         pauseMenuPanel.setOnBackToMenu(event -> {
             cleanupGame();
             mainMenu.setVisible(true);
+            // Ensure menu container is visible when returning to main menu
+            if (menuContainer != null) {
+                menuContainer.setVisible(true);
+            }
+            if (settingsContainer != null) {
+                settingsContainer.setVisible(false);
+            }
         });
         pauseMenuPanel.setOnQuit(event -> exitGame());
+        
+        // Wire up settings panel (legacy, for pause menu settings)
+        if (settingsPanel != null) {
+            settingsPanel.setOnBackToMenu(event -> {
+                if (groupSettings != null) {
+                    groupSettings.setVisible(false);
+                }
+                if (mainMenu != null) {
+                    mainMenu.setVisible(true);
+                }
+                // Ensure menu container is visible when returning to main menu
+                if (menuContainer != null) {
+                    menuContainer.setVisible(true);
+                }
+                if (settingsContainer != null) {
+                    settingsContainer.setVisible(false);
+                }
+            });
+            settingsPanel.initializeGhostMode();
+        }
+        
+        // Wire up main menu ghost mode switch
+        if (ghostModeTrack != null && ghostModeThumb != null) {
+            // Ensure track has proper alignment for centered circle
+            ghostModeTrack.setAlignment(javafx.geometry.Pos.CENTER);
+            
+            // Set circle properties (already defined in FXML, but ensure they're set)
+            ghostModeThumb.setRadius(10);
+            ghostModeThumb.setFill(Color.rgb(0, 255, 255)); // Bright cyan
+            ghostModeThumb.setEffect(new DropShadow(
+                BlurType.THREE_PASS_BOX,
+                Color.rgb(0, 255, 255),
+                15, 0.8, 0, 0
+            ));
+            ghostModeThumb.setOpacity(1.0);
+            ghostModeThumb.setVisible(true);
+            
+            // Initialize switch state - this will set the initial position using translateX
+            updateGhostModeSwitch();
+            
+            // Make the track clickable
+            ghostModeTrack.setOnMouseClicked(event -> toggleGhostMode());
+        }
+        
+        // Initialize ghost mode switch labels with proper style classes
+        if (ghostModeOffLabel != null) {
+            ghostModeOffLabel.getStyleClass().add("toggle-off");
+        }
+        if (ghostModeOnLabel != null) {
+            // Default to ON state (enabled by default)
+            if (GameConfig.isGhostModeEnabled()) {
+                ghostModeOnLabel.getStyleClass().add("toggle-on");
+            } else {
+                ghostModeOnLabel.getStyleClass().add("toggle-off");
+            }
+        }
+        
+        // Wire up music volume slider
+        if (musicVolumeSlider != null) {
+            musicVolumeSlider.setValue(GameConfig.getMusicVolume());
+            musicVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+                GameConfig.setMusicVolume(newVal.doubleValue());
+            });
+        }
         
         if (levelSelectionPanel != null) {
             levelSelectionPanel.setOnLevelSelected(event -> {
@@ -211,6 +368,13 @@ public class GuiController implements Initializable {
             levelSelectionPanel.setOnBackToMenu(event -> {
                 groupLevelSelection.setVisible(false);
                 mainMenu.setVisible(true);
+                // Ensure menu container is visible when returning to main menu
+                if (menuContainer != null) {
+                    menuContainer.setVisible(true);
+                }
+                if (settingsContainer != null) {
+                    settingsContainer.setVisible(false);
+                }
                 if (gameBoard != null) {
                     gameBoard.setVisible(false);
                 }
@@ -230,6 +394,13 @@ public class GuiController implements Initializable {
 
 
         mainMenu.setVisible(true);
+        // Ensure menu container is visible when returning to main menu
+        if (menuContainer != null) {
+            menuContainer.setVisible(true);
+        }
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(false);
+        }
 
         isPause.setValue(Boolean.TRUE);
         gamePanel.setOpacity(0.5);
@@ -249,6 +420,12 @@ public class GuiController implements Initializable {
         }
         if (ghostPanel != null) {
             ghostPanel.getChildren().clear();
+            // CRITICAL: Ensure ghost panel has the same gap settings as brickPanel from the start
+            // This guarantees perfect alignment between ghost and active blocks
+            if (brickPanel != null) {
+                ghostPanel.setVgap(brickPanel.getVgap());
+                ghostPanel.setHgap(brickPanel.getHgap());
+            }
         }
         
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
@@ -274,11 +451,11 @@ public class GuiController implements Initializable {
                 brickPanel.add(rectangle, j, i);
             }
         }
-        brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-        brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
+        // Use unified positioning method to ensure perfect alignment
+        positionPanelAtGrid(brickPanel, brick.getxPosition(), brick.getyPosition());
 
         // Initialize ghost piece and next block display
-        updateGhostPiece(boardMatrix, brick);
+        drawGhost(boardMatrix, brick);
         updateNextBlock(brick.getNextBrickData());
 
         updateTimelineSpeed(400);
@@ -314,16 +491,20 @@ public class GuiController implements Initializable {
                 returnPaint = Color.TRANSPARENT;
                 break;
             case 1:
-                returnPaint = Color.AQUA;
+                // Blue/Cyan - Use solid, vibrant cyan
+                returnPaint = Color.rgb(0, 255, 255); // Bright cyan
                 break;
             case 2:
-                returnPaint = Color.BLUEVIOLET;
+                // Purple - Use solid, vibrant purple
+                returnPaint = Color.rgb(138, 43, 226); // Blue violet
                 break;
             case 3:
-                returnPaint = Color.DARKGREEN;
+                // Green - Use solid, vibrant green
+                returnPaint = Color.rgb(0, 200, 0); // Bright green
                 break;
             case 4:
-                returnPaint = Color.YELLOW;
+                // Yellow - Use solid, vibrant yellow
+                returnPaint = Color.rgb(255, 255, 0); // Bright yellow
                 break;
             case 5:
                 returnPaint = Color.RED;
@@ -344,17 +525,32 @@ public class GuiController implements Initializable {
 
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
-            brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-            brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
+            // CRUCIAL: Draw ghost BEFORE the active block so it appears behind it
+            // Update ghost piece first - Get the latest board matrix directly from the board to ensure accuracy
+            if (eventListener instanceof GameController) {
+                GameController gc = (GameController) eventListener;
+                Board board = gc.getBoard();
+                if (board != null) {
+                    int[][] latestBoardMatrix = board.getBoardMatrix();
+                    if (latestBoardMatrix != null) {
+                        drawGhost(latestBoardMatrix, brick);
+                    }
+                }
+            } else if (currentBoardMatrix != null) {
+                // Fallback to stored matrix if not using GameController
+                drawGhost(currentBoardMatrix, brick);
+            }
+            
+            // Now update the active block (drawn after ghost, so it appears on top)
+            // Use unified positioning method to ensure perfect alignment with ghost
+            positionPanelAtGrid(brickPanel, brick.getxPosition(), brick.getyPosition());
             for (int i = 0; i < brick.getBrickData().length; i++) {
                 for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                     setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
                 }
             }
-            // Update ghost piece and next block display
-            if (currentBoardMatrix != null) {
-                updateGhostPiece(currentBoardMatrix, brick);
-            }
+            
+            // Update next block display
             updateNextBlock(brick.getNextBrickData());
         }
     }
@@ -410,80 +606,158 @@ public class GuiController implements Initializable {
     }
 
     /**
-     * Calculate the ghost piece position (where the block would land if dropped straight down)
+     * Helper method to calculate the ghost Y position.
+     * The Ghost is NOT an object - it's just a calculation.
+     * 
+     * Algorithm:
+     * 1. Start with ghostY = currentBlock.getY()
+     * 2. While loop: Check if board.isValidMove(currentBlock.getX(), ghostY + 1, currentBlock.getRotation())
+     * 3. Inside loop: ghostY++
+     * 4. This simulates dropping the block until it hits the floor or another block
+     * 
+     * CRITICAL: Uses the exact same X position and rotation as the active block.
+     * The collision detection uses transposed indexing, but this method correctly
+     * calculates where the block would land using the same logic as the game movement.
      */
-    private int calculateGhostY(int[][] boardMatrix, int[][] brickData, int currentX, int currentY) {
-        if (boardMatrix == null || brickData == null) {
+    private int getGhostY(int[][] boardMatrix, ViewData currentBlock) {
+        if (boardMatrix == null || currentBlock == null || boardMatrix.length == 0) {
+            return currentBlock != null ? currentBlock.getyPosition() : 0;
+        }
+        
+        // Get the current block's position and shape (rotation) - MUST use exact same X and rotation
+        int currentX = currentBlock.getxPosition();  // Use exact same X - CRITICAL for alignment
+        int currentY = currentBlock.getyPosition();
+        int[][] brickData = currentBlock.getBrickData(); // Use exact same rotation - CRITICAL for alignment
+        
+        if (brickData == null || brickData.length == 0) {
             return currentY;
         }
         
+        // Start with ghostY = currentBlock.getY()
         int ghostY = currentY;
-        // Keep moving down until we hit something
-        while (true) {
-            int testY = ghostY + 1;
-            if (MatrixOperations.intersect(boardMatrix, brickData, currentX, testY)) {
-                break; // Found collision, stop here
+        
+        // While loop: Check if the move is valid (no collision)
+        // MatrixOperations.intersect returns true if there's a collision or out of bounds
+        // So !intersect means the move is valid
+        // CRITICAL: Use the exact same X position (currentX) throughout the calculation
+        while (!MatrixOperations.intersect(boardMatrix, brickData, currentX, ghostY + 1)) {
+            // Move is valid, increment ghostY
+            ghostY++;
+            
+            // Safety check: prevent infinite loop
+            if (ghostY >= boardMatrix.length) {
+                break;
             }
-            ghostY = testY;
         }
+        
+        // Loop exits when ghostY + 1 would cause a collision or go out of bounds
+        // So ghostY is the last valid position (where the block would land)
+        // This position is guaranteed to be safe (no collision) and aligned with currentX
         return ghostY;
     }
 
     /**
-     * Update the ghost piece display (hollow outline showing where block will land)
+     * Draw the ghost piece (shadow piece) showing where the block will land.
+     * This method is called in the draw loop every frame.
+     * 
+     * CRUCIAL: Ghost must be drawn BEFORE the active block so it appears behind it.
+     * 
+     * The ghost uses:
+     * - X: currentBlock.getX() (MUST match active block exactly)
+     * - Y: The calculated ghostY from getGhostY()
+     * - Shape/Rotation: currentBlock.getShape() (MUST match active block exactly)
+     * - Style: Transparent fill or outline style
      */
-    private void updateGhostPiece(int[][] boardMatrix, ViewData brick) {
-        if (ghostPanel == null || boardMatrix == null || brick == null) {
+    private void drawGhost(int[][] boardMatrix, ViewData currentBlock) {
+        if (ghostPanel == null || boardMatrix == null || currentBlock == null || brickPanel == null) {
             return;
         }
         
         // Clear existing ghost rectangles
         ghostPanel.getChildren().clear();
         
-        int[][] brickData = brick.getBrickData();
-        int currentX = brick.getxPosition();
-        int currentY = brick.getyPosition();
+        // CRITICAL: Ensure ghost panel has the same gap settings as brickPanel for perfect alignment
+        ghostPanel.setVgap(brickPanel.getVgap());
+        ghostPanel.setHgap(brickPanel.getHgap());
         
-        // Calculate where the block would land
-        int ghostY = calculateGhostY(boardMatrix, brickData, currentX, currentY);
+        // Get the current block's position and shape (rotation) - MUST match active block exactly
+        int currentX = currentBlock.getxPosition();  // X: currentBlock.getX() (MUST match active block)
+        int currentY = currentBlock.getyPosition();
+        int[][] brickData = currentBlock.getBrickData(); // Shape/Rotation: currentBlock.getShape() (MUST match active block)
         
-        // Only show ghost if it's different from current position
-        if (ghostY > currentY) {
-            // Create ghost rectangles as hollow outlines
+        if (brickData == null || brickData.length == 0) {
+            return;
+        }
+        
+        // Call getGhostY() at the very start of the draw frame to find the drop point
+        // CRITICAL: This uses the exact same X position and rotation as the active block
+        int ghostY = getGhostY(boardMatrix, currentBlock);
+        
+        // Only show ghost if:
+        // 1. It's different from current position (ghostY > currentY)
+        // 2. The position is valid (ghostY >= 0)
+        // NOTE: getGhostY() already validates the position using intersect(), so if it returns
+        // a valid ghostY, that position is guaranteed to be safe (no collision, within bounds).
+        // We trust getGhostY()'s validation rather than double-checking, which could cause
+        // false negatives when blocks are rotated near borders.
+        // Check if ghost mode is enabled in GameConfig
+        if (!GameConfig.isGhostModeEnabled()) {
+            return; // Ghost mode disabled, don't draw ghost
+        }
+        
+        // Only show ghost if:
+        // 1. It's different from current position (ghostY > currentY)
+        // 2. The position is valid (ghostY >= 0)
+        boolean isValidGhost = ghostY > currentY && ghostY >= 0;
+        
+        if (isValidGhost) {
+            // Draw the ghost block using the EXACT same shape data and rendering logic as the active block
+            // CRITICAL: The collision detection uses transposed indexing (shape[j][i]), but rendering
+            // uses normal indexing (brickData[i][j]). We must match the active block rendering exactly.
+            // NOTE: The ghost position is already validated by getGhostY() and isGhostPositionSafe,
+            // so we can safely render all cells without additional boundary checks.
+            // The validation ensures the entire block (at ghostY position) is within bounds.
             for (int i = 0; i < brickData.length; i++) {
                 for (int j = 0; j < brickData[i].length; j++) {
-                    if (brickData[i][j] != 0) {
+                    if (brickData[i][j] != 0) { // Use [i][j] to match active block rendering
                         Rectangle ghostRect = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                        // Hollow outline: no fill, stroke only
-                        ghostRect.setFill(Color.TRANSPARENT);
+                        
+                        // Style: Use transparent fill or outline style so it looks like a shadow
                         Paint blockColor = getFillColor(brickData[i][j]);
-                        // Create a semi-transparent version of the block color (more visible)
                         if (blockColor instanceof Color) {
                             Color c = (Color) blockColor;
-                            Color ghostColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), 0.7);
-                            ghostRect.setStroke(ghostColor);
-                            ghostRect.setStrokeWidth(3.0);
+                            // Transparent fill (ghost appears behind active block)
+                            Color ghostColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), 0.3);
+                            ghostRect.setFill(ghostColor);
+                            // Also add a stroke for better visibility
+                            ghostRect.setStroke(c.deriveColor(0, 1, 1, 0.5));
+                            ghostRect.setStrokeWidth(2.0);
                         } else {
-                            ghostRect.setStroke(Color.WHITE.deriveColor(0, 1, 1, 0.7));
-                            ghostRect.setStrokeWidth(3.0);
+                            ghostRect.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.3));
+                            ghostRect.setStroke(Color.WHITE.deriveColor(0, 1, 1, 0.5));
+                            ghostRect.setStrokeWidth(2.0);
                         }
                         ghostRect.setEffect(null);
                         ghostRect.setArcHeight(9);
                         ghostRect.setArcWidth(9);
                         
-                        // Add rectangle to grid (positioning is handled by panel layout)
+                        // Add rectangle to grid using EXACT same indexing as brickPanel
+                        // brickPanel uses (j, i) - column j, row i - to match active block
                         ghostPanel.add(ghostRect, j, i);
                     }
                 }
             }
-            // Position ghost panel at the calculated drop position (same as brickPanel positioning)
-            ghostPanel.setLayoutX(gamePanel.getLayoutX() + currentX * ghostPanel.getVgap() + currentX * BRICK_SIZE);
-            ghostPanel.setLayoutY(-42 + gamePanel.getLayoutY() + ghostY * ghostPanel.getHgap() + ghostY * BRICK_SIZE);
+            
+            // Position ghost panel using EXACT same calculation as brickPanel
+            // CRITICAL: Use the exact same X position as the active block (currentX)
+            // The ghost should be at the same X position, only Y changes to ghostY
+            // Use unified positioning method to guarantee pixel-perfect alignment
+            positionPanelAtGrid(ghostPanel, currentX, ghostY);
         }
     }
 
     /**
-     * Hard drop: instantly drop the block to the ghost position
+     * Hard drop: instantly drop the block to the EXACT ghost position
      */
     private void hardDrop() {
         if (eventListener == null || currentBoardMatrix == null || rectangles == null) {
@@ -503,17 +777,18 @@ public class GuiController implements Initializable {
                 return;
             }
             
-            int[][] brickData = currentBrick.getBrickData();
-            int currentX = currentBrick.getxPosition();
+            // Calculate ghost position (this is the EXACT landing position)
+            // Use the new getGhostY method which calculates dynamically based on currentBlock
+            int ghostY = getGhostY(currentBoardMatrix, currentBrick);
+            
             int currentY = currentBrick.getyPosition();
             
-            // Calculate ghost position
-            int ghostY = calculateGhostY(currentBoardMatrix, brickData, currentX, currentY);
-            
-            // Drop the block instantly to ghost position by repeatedly calling moveDown
+            // Drop the block instantly to the EXACT ghost position
             if (ghostY > currentY) {
-                int targetY = ghostY;
-                while (currentY < targetY) {
+                // Keep moving down until we reach the exact ghost Y position
+                // The ghost Y is the last safe position, so we need to reach it exactly
+                while (currentY < ghostY) {
+                    int previousY = currentY;
                     DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.USER));
                     if (downData == null) {
                         break;
@@ -523,15 +798,24 @@ public class GuiController implements Initializable {
                         break;
                     }
                     int newY = newBrick.getyPosition();
-                    if (newY == currentY) {
-                        // Block can't move down anymore
+                    
+                    // If block can't move down anymore (locked at current position), stop
+                    if (newY == previousY) {
+                        // Block locked - should be at ghost position if calculation is correct
                         break;
                     }
+                    
+                    // Update current position
                     currentY = newY;
                     refreshBrick(newBrick);
                     
                     // If block merged (clearRow is not null), we're done
                     if (downData.getClearRow() != null) {
+                        break;
+                    }
+                    
+                    // If we've reached the ghost position exactly, we're done
+                    if (currentY >= ghostY) {
                         break;
                     }
                 }
@@ -653,6 +937,13 @@ public class GuiController implements Initializable {
         newPanel.setOnMenu(event -> {
             groupLevelComplete.setVisible(false);
             mainMenu.setVisible(true);
+            // Ensure menu container is visible when returning to main menu
+            if (menuContainer != null) {
+                menuContainer.setVisible(true);
+            }
+            if (settingsContainer != null) {
+                settingsContainer.setVisible(false);
+            }
             if (levelSelectionPanel != null) {
                 levelSelectionPanel.refreshLevels();
             }
@@ -737,6 +1028,13 @@ public class GuiController implements Initializable {
             }
             gameOverPanel.setVisible(false);
             mainMenu.setVisible(true);
+            // Ensure menu container is visible when returning to main menu
+            if (menuContainer != null) {
+                menuContainer.setVisible(true);
+            }
+            if (settingsContainer != null) {
+                settingsContainer.setVisible(false);
+            }
             if (levelSelectionPanel != null) {
                 levelSelectionPanel.refreshLevels();
             }
@@ -763,6 +1061,7 @@ public class GuiController implements Initializable {
         isPause.setValue(Boolean.TRUE);
         gamePanel.setOpacity(0.5);
         groupPauseMenu.setVisible(true);
+        // Refresh pause menu (ghost mode is now in settings)
         gamePanel.requestFocus();
     }
 
@@ -830,6 +1129,15 @@ public class GuiController implements Initializable {
     public void showLevelSelection() {
         mainMenu.setVisible(false);
         groupLevelSelection.setVisible(true);
+        
+        // Hide HUD panels (score boxes) when showing level selection
+        if (hudVboxLeft != null) {
+            hudVboxLeft.setVisible(false);
+        }
+        if (hudVboxRight != null) {
+            hudVboxRight.setVisible(false);
+        }
+        
         if (gameBoard != null) {
             gameBoard.setVisible(false);
         }
@@ -843,6 +1151,154 @@ public class GuiController implements Initializable {
             levelSelectionPanel.refreshLevels();
         }
     }
+
+    @FXML
+    public void showSettings() {
+        // Hide main menu buttons and show settings container
+        if (menuContainer != null) {
+            menuContainer.setVisible(false);
+        }
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(true);
+            
+            // Ensure the circle is properly initialized when settings are shown
+            if (ghostModeTrack != null && ghostModeThumb != null) {
+                // Ensure track has proper alignment
+                ghostModeTrack.setAlignment(javafx.geometry.Pos.CENTER);
+                
+                // Force re-initialization of circle properties
+                ghostModeThumb.setRadius(10);
+                ghostModeThumb.setFill(Color.rgb(0, 255, 255));
+                ghostModeThumb.setEffect(new DropShadow(
+                    BlurType.THREE_PASS_BOX,
+                    Color.rgb(0, 255, 255),
+                    15, 0.8, 0, 0
+                ));
+                ghostModeThumb.setOpacity(1.0);
+                ghostModeThumb.setVisible(true);
+            }
+            
+            // Initialize ghost mode switch with current GameConfig value
+            updateGhostModeSwitch();
+            // Initialize music volume slider
+            if (musicVolumeSlider != null) {
+                musicVolumeSlider.setValue(GameConfig.getMusicVolume());
+            }
+        }
+    }
+    
+    /**
+     * Show settings from the pause menu.
+     * Hides the pause menu and shows the settings container.
+     */
+    public void showPauseSettings() {
+        // Hide pause menu
+        if (groupPauseMenu != null) {
+            groupPauseMenu.setVisible(false);
+        }
+        
+        // Show settings container (same as main menu settings)
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(true);
+            
+            // Ensure the circle is properly initialized when settings are shown
+            if (ghostModeTrack != null && ghostModeThumb != null) {
+                // Ensure track has proper alignment
+                ghostModeTrack.setAlignment(javafx.geometry.Pos.CENTER);
+                
+                // Force re-initialization of circle properties
+                ghostModeThumb.setRadius(10);
+                ghostModeThumb.setFill(Color.rgb(0, 255, 255));
+                ghostModeThumb.setEffect(new DropShadow(
+                    BlurType.THREE_PASS_BOX,
+                    Color.rgb(0, 255, 255),
+                    15, 0.8, 0, 0
+                ));
+                ghostModeThumb.setOpacity(1.0);
+                ghostModeThumb.setVisible(true);
+            }
+            
+            // Initialize ghost mode switch with current GameConfig value
+            updateGhostModeSwitch();
+            // Initialize music volume slider
+            if (musicVolumeSlider != null) {
+                musicVolumeSlider.setValue(GameConfig.getMusicVolume());
+            }
+        }
+    }
+
+    @FXML
+    public void backToMainMenu() {
+        // Hide settings container
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(false);
+        }
+        
+        // Show main menu buttons if we're in the main menu
+        if (menuContainer != null && mainMenu != null && mainMenu.isVisible()) {
+            menuContainer.setVisible(true);
+        }
+        
+        // Show pause menu if we came from pause menu
+        if (groupPauseMenu != null && isPause.getValue() == Boolean.TRUE) {
+            groupPauseMenu.setVisible(true);
+        }
+    }
+    
+    @FXML
+    public void toggleGhostMode() {
+        // Toggle ghost mode
+        boolean newValue = !GameConfig.isGhostModeEnabled();
+        GameConfig.setGhostModeEnabled(newValue);
+        updateGhostModeSwitch();
+    }
+    
+    private void updateGhostModeSwitch() {
+        if (ghostModeTrack == null || ghostModeThumb == null || 
+            ghostModeOffLabel == null || ghostModeOnLabel == null) {
+            return;
+        }
+        
+        boolean enabled = GameConfig.isGhostModeEnabled();
+        
+        // Precise positioning: Circle is centered in StackPane (at 0,0)
+        // Track is 60px wide, circle radius is 10px (diameter 20px)
+        // Center of track is at 30px, so:
+        // OFF: Center - 15px = -15px translateX (circle from 15px to 35px, left side)
+        // ON: Center + 15px = +15px translateX (circle from 25px to 45px, right side)
+        double onPosition = 15.0;   // Right side: +15px from center
+        double offPosition = -15.0; // Left side: -15px from center
+        
+        // Get current position to determine if we need to animate
+        double currentX = ghostModeThumb.getTranslateX();
+        double targetX = enabled ? onPosition : offPosition;
+        
+        // Only animate if position actually needs to change
+        if (Math.abs(currentX - targetX) > 0.1) {
+            // Animate thumb position with smooth transition
+            TranslateTransition transition = new TranslateTransition(
+                Duration.millis(250), ghostModeThumb);
+            transition.setFromX(currentX);
+            transition.setToX(targetX);
+            transition.play();
+        } else {
+            // Position already correct, just set it directly
+            ghostModeThumb.setTranslateX(targetX);
+        }
+        
+        // Update label styles
+        if (enabled) {
+            ghostModeOffLabel.getStyleClass().clear();
+            ghostModeOffLabel.getStyleClass().add("toggle-off");
+            ghostModeOnLabel.getStyleClass().clear();
+            ghostModeOnLabel.getStyleClass().add("toggle-on");
+        } else {
+            ghostModeOffLabel.getStyleClass().clear();
+            ghostModeOffLabel.getStyleClass().add("toggle-off");
+            ghostModeOnLabel.getStyleClass().clear();
+            ghostModeOnLabel.getStyleClass().add("toggle-off"); // Dimmed when off
+        }
+    }
     
     public void startLevelGame(int levelId) {
         cleanupGame();
@@ -850,6 +1306,14 @@ public class GuiController implements Initializable {
         mainMenu.setVisible(false);
         groupLevelSelection.setVisible(false);
         groupPauseMenu.setVisible(false);
+        
+        // Show HUD panels when game starts
+        if (hudVboxLeft != null) {
+            hudVboxLeft.setVisible(true);
+        }
+        if (hudVboxRight != null) {
+            hudVboxRight.setVisible(true);
+        }
         groupLevelComplete.setVisible(false);
         
         if (groupNotification != null) {
