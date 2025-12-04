@@ -157,7 +157,7 @@ public class MatrixOperations {
             }
         }
 
-        return new ClearRow(clearedRows.size(), tmp );
+        return new ClearRow(clearedRows.size(), tmp, clearedRows);
     }
 
     public static List<int[][]> deepCopyList(List<int[][]> list){

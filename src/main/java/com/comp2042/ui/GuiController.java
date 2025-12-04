@@ -32,7 +32,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -112,6 +114,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private GridPane nextBlockPanel;
+
+    @FXML
+    private javafx.scene.layout.Pane laserContainer;
 
     @FXML
     private javafx.scene.layout.BorderPane gameBoard;
@@ -200,6 +205,7 @@ public class GuiController implements Initializable {
     private Rectangle[][] rectangles;
 
     private Timeline timeLine;
+    private Timeline laserTimeline;
 
     private final BooleanProperty isPause = new SimpleBooleanProperty();
 
@@ -408,9 +414,220 @@ public class GuiController implements Initializable {
         HighScoreManager hsManager = new HighScoreManager();
         int currentHigh = hsManager.loadHighScore();
         highScoreValue.setText(String.valueOf(currentHigh));
+        
+        // Initialize shatter animation timeline
+        initializeShatterSystem();
+    }
+    
+    /**
+     * Initialize the shatter animation system
+     */
+    private void initializeShatterSystem() {
+        if (laserContainer == null) {
+            return;
+        }
+        
+        // Clear any existing shards
+        laserContainer.getChildren().clear();
+        
+        // Create shard update timeline (60 FPS = ~16ms per frame)
+        laserTimeline = new Timeline(new KeyFrame(Duration.millis(16), ae -> updateAndRenderShards()));
+        laserTimeline.setCycleCount(Timeline.INDEFINITE);
+        laserTimeline.play();
+    }
+    
+    /**
+     * Update all active shards and render them
+     */
+    private void updateAndRenderShards() {
+        if (laserContainer == null || isPause.getValue() == Boolean.TRUE) {
+            return;
+        }
+        
+        // Get GameController to access active shards
+        if (!(eventListener instanceof GameController)) {
+            return;
+        }
+        
+        GameController gameController = (GameController) eventListener;
+        
+        // Update flashes and shards (remove dead ones)
+        double deltaTime = 0.016; // ~16ms per frame at 60 FPS
+        gameController.updateFlashes(deltaTime);
+        gameController.updateShards(deltaTime);
+        
+        // Clear and re-render all active effects
+        laserContainer.getChildren().clear();
+        
+        // Render white flashes first (so shards appear on top)
+        for (GameController.WhiteFlash flash : gameController.getActiveFlashes()) {
+            renderWhiteFlash(flash);
+        }
+        
+        // Render each active shard
+        for (GameController.Shard shard : gameController.getActiveShards()) {
+            renderShard(shard);
+        }
+    }
+    
+    /**
+     * Render a single shard with physics-based transformations
+     * @param shard The shard to render
+     */
+    private void renderShard(GameController.Shard shard) {
+        if (laserContainer == null || gamePanel == null || brickPanel == null) {
+            return;
+        }
+        
+        double x = shard.getX();
+        double y = shard.getY();
+        double rotation = shard.getRotation();
+        javafx.scene.paint.Color color = shard.getColor();
+        double opacity = shard.getOpacity();
+        
+        // If opacity is 0, don't render
+        if (opacity <= 0) {
+            return;
+        }
+        
+        // Convert grid coordinates to pixel coordinates
+        // The shard positions are stored in grid coordinates (col, row)
+        // We need to convert them to screen coordinates using gridToPixel
+        int gridCol = (int)Math.floor(x);
+        int gridRow = (int)Math.floor(y);
+        
+        javafx.geometry.Point2D basePixelPos = gridToPixel(gridCol, gridRow);
+        
+        // Add the fractional offset within the grid cell
+        // Shards are positioned in grid coordinates, convert to pixel offset
+        double offsetX = (x - gridCol) * BRICK_SIZE;
+        double offsetY = (y - gridRow) * BRICK_SIZE;
+        
+        // Account for block center (shards spawn from block centers)
+        // Add half brick size to center the shard
+        double screenX = basePixelPos.getX() + offsetX + BRICK_SIZE / 2.0;
+        double screenY = basePixelPos.getY() + offsetY + BRICK_SIZE / 2.0;
+        
+        // Create an irregular triangle/polygon for the glass shard
+        // Use a jagged polygon shape (not just a square) to look like broken glass
+        javafx.scene.shape.Polygon shardPolygon = new javafx.scene.shape.Polygon();
+        
+        // HIGH IMPACT: Larger shards (4-12 pixels) for more visible explosion
+        double size = 4 + Math.random() * 8; // 4-12 pixels (larger)
+        double jaggedness = 2.0; // More jaggedness for irregular shapes
+        
+        // Create irregular triangle points (jagged edges)
+        // Polygon.getPoints() requires Double objects, not primitives
+        shardPolygon.getPoints().addAll(
+            -size/2 + (Math.random() - 0.5) * jaggedness, // Top-left X (jagged)
+            -size/2 + (Math.random() - 0.5) * jaggedness, // Top-left Y (jagged)
+            size/2 + (Math.random() - 0.5) * jaggedness,  // Top-right X (jagged)
+            -size/2 + (Math.random() - 0.5) * jaggedness, // Top-right Y (jagged)
+            0 + (Math.random() - 0.5) * jaggedness,       // Bottom X (jagged)
+            size/2 + (Math.random() - 0.5) * jaggedness   // Bottom Y (jagged)
+        );
+        
+        // Set color and opacity (white or very bright for maximum impact)
+        shardPolygon.setFill(color);
+        shardPolygon.setOpacity(opacity);
+        
+        // STRONG glow effect (like fireworks) for maximum visual impact
+        DropShadow glow = new DropShadow(
+            BlurType.GAUSSIAN,
+            color,
+            20,  // Large radius for strong glow
+            1.0, // Maximum spread
+            0,   // Offset X
+            0    // Offset Y
+        );
+        shardPolygon.setEffect(glow);
+        
+        // Apply transformations: translate and rotate
+        shardPolygon.setTranslateX(screenX);
+        shardPolygon.setTranslateY(screenY);
+        shardPolygon.setRotate(rotation);
+        
+        // Add to container
+        laserContainer.getChildren().add(shardPolygon);
+    }
+    
+    /**
+     * Render a white flash effect for the cleared row
+     * @param flash The white flash effect to render
+     */
+    private void renderWhiteFlash(GameController.WhiteFlash flash) {
+        if (laserContainer == null || gamePanel == null || brickPanel == null) {
+            return;
+        }
+        
+        int gridY = flash.getGridY();
+        double life = flash.getLife();
+        
+        // If life is 0, don't render
+        if (life <= 0) {
+            return;
+        }
+        
+        // Convert grid Y to display row (accounting for the 2-row offset in gamePanel)
+        int displayRow = gridY - 2;
+        if (displayRow < 0) {
+            return; // Row is above visible area
+        }
+        
+        // Get board dimensions
+        Board board = null;
+        if (eventListener instanceof GameController) {
+            board = ((GameController) eventListener).getBoard();
+        }
+        if (board == null) {
+            return;
+        }
+        
+        int[][] boardMatrix = board.getBoardMatrix();
+        if (boardMatrix == null || boardMatrix.length == 0) {
+            return;
+        }
+        
+        int boardWidth = boardMatrix[0] != null ? boardMatrix[0].length : 0;
+        
+        // Calculate row position and dimensions
+        javafx.geometry.Point2D leftPixelPos = gridToPixel(0, displayRow);
+        javafx.geometry.Point2D rightPixelPos = gridToPixel(boardWidth - 1, displayRow);
+        double rowX = leftPixelPos.getX();
+        double rowY = leftPixelPos.getY();
+        double rowWidth = rightPixelPos.getX() + BRICK_SIZE - rowX;
+        double rowHeight = BRICK_SIZE;
+        
+        // Create blinding white rectangle covering the entire row
+        Rectangle flashRect = new Rectangle(rowWidth, rowHeight);
+        flashRect.setFill(Color.WHITE);
+        flashRect.setOpacity(life); // Fade out quickly
+        flashRect.setX(rowX);
+        flashRect.setY(rowY);
+        
+        // Add strong white glow for blinding effect
+        DropShadow whiteGlow = new DropShadow(
+            BlurType.GAUSSIAN,
+            Color.WHITE,
+            30,  // Very large radius for blinding effect
+            1.0, // Maximum spread
+            0,   // Offset X
+            0    // Offset Y
+        );
+        flashRect.setEffect(whiteGlow);
+        
+        // Add to container
+        laserContainer.getChildren().add(flashRect);
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
+        // Clear all shards when initializing game view
+        if (eventListener instanceof GameController) {
+            ((GameController) eventListener).clearAllShards();
+        }
+        if (laserContainer != null) {
+            laserContainer.getChildren().clear();
+        }
         currentBoardMatrix = boardMatrix; // Store board matrix for ghost piece calculation
         if (displayMatrix != null) {
             gamePanel.getChildren().clear();
@@ -484,7 +701,7 @@ public class GuiController implements Initializable {
         }
     }
 
-    private Paint getFillColor(int i) {
+    public Paint getFillColor(int i) {
         Paint returnPaint;
         switch (i) {
             case 0:
@@ -1042,6 +1259,13 @@ public class GuiController implements Initializable {
     }
 
     public void newGame(ActionEvent actionEvent) {
+        // Clear all shards when starting new game
+        if (eventListener instanceof GameController) {
+            ((GameController) eventListener).clearAllShards();
+        }
+        if (laserContainer != null) {
+            laserContainer.getChildren().clear();
+        }
         timeLine.stop();
         gameOverPanel.setVisible(false);
         groupPauseMenu.setVisible(false);
