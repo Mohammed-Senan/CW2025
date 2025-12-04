@@ -19,30 +19,20 @@ public class GameController implements InputEventListener {
     private static final int SOFT_DROP_SCORE = 1;
     private static final int LINE_SCORE_MULTIPLIER = 50;
     
-    // Physics-Based Neon Glass Shatter System (High Impact)
     private List<Shard> activeShards = new ArrayList<>();
     private List<WhiteFlash> activeFlashes = new ArrayList<>();
     
-    /**
-     * WhiteFlash Class for Impact Flash Effect
-     * Creates a blinding white flash when a row is cleared
-     */
     public static class WhiteFlash {
-        private int gridY;           // The row index that was cleared
-        private double life;          // Life remaining (1.0 to 0.0)
-        private double maxLife;       // Maximum life duration (0.1 seconds - very fast)
+        private int gridY;
+        private double life;
+        private double maxLife;
         
         public WhiteFlash(int gridY) {
             this.gridY = gridY;
             this.life = 1.0;
-            this.maxLife = 0.1; // 0.1 seconds - blinding fast flash
+            this.maxLife = 0.1;
         }
         
-        /**
-         * Update the flash: decrease life over time
-         * @param deltaTime Time elapsed since last update (in seconds)
-         * @return true if flash is still alive, false if dead
-         */
         public boolean update(double deltaTime) {
             life -= deltaTime / maxLife;
             if (life < 0.0) {
@@ -55,68 +45,56 @@ public class GameController implements InputEventListener {
         public double getLife() { return life; }
     }
     
-    /**
-     * Shard Class for Physics-Based Debris (High Impact)
-     * Fields: x, y, velocity X, velocity Y (gravity), rotation, rotationSpeed, color, opacity
-     */
     public static class Shard {
-        private double x;                // X position in grid coordinates
-        private double y;                // Y position in grid coordinates
-        private double velocityX;        // X velocity (explosive)
-        private double velocityY;        // Y velocity (affected by gravity)
-        private double rotation;         // Current rotation angle in degrees
-        private double rotationSpeed;    // Rotation speed in degrees per second (high)
-        private javafx.scene.paint.Color color;  // Shard color (white or very bright)
-        private double opacity;           // Opacity (1.0 to 0.0)
+        private double x;
+        private double y;
+        private double velocityX;
+        private double velocityY;
+        private javafx.scene.paint.Color startColor;
+        private javafx.scene.paint.Color endColor;
+        private double opacity;
+        private double life;
+        private double maxLife;
+        private static final double DRAG = 0.85;
         
         public Shard(double x, double y, double velocityX, double velocityY, 
-                     double rotationSpeed, javafx.scene.paint.Color color) {
+                     javafx.scene.paint.Color endColor) {
             this.x = x;
             this.y = y;
             this.velocityX = velocityX;
             this.velocityY = velocityY;
-            this.rotation = 0.0;
-            this.rotationSpeed = rotationSpeed;
-            this.color = color;
+            this.startColor = javafx.scene.paint.Color.WHITE;
+            this.endColor = endColor;
             this.opacity = 1.0;
+            this.life = 1.0;
+            this.maxLife = 0.5;
         }
         
-        /**
-         * Update the shard physics: apply strong gravity, update position, rotation, and opacity
-         * @param deltaTime Time elapsed since last update (in seconds)
-         * @return true if shard is still alive, false if dead
-         */
         public boolean update(double deltaTime) {
-            // Add strong gravity to velocityY (vy += 0.8)
-            velocityY += 0.8 * deltaTime * 60; // Strong gravity in grid units
+            velocityX *= Math.pow(DRAG, deltaTime * 60);
+            velocityY *= Math.pow(DRAG, deltaTime * 60);
             
-            // Update position
-            x += velocityX * deltaTime * 60; // Scale for 60 FPS
-            y += velocityY * deltaTime * 60; // Scale for 60 FPS
+            x += velocityX * deltaTime * 60;
+            y += velocityY * deltaTime * 60;
             
-            // Update rotation (high speed)
-            rotation += rotationSpeed * deltaTime * 60; // Scale for 60 FPS
-            if (rotation >= 360.0) {
-                rotation -= 360.0;
-            }
-            if (rotation < 0.0) {
-                rotation += 360.0;
+            life -= deltaTime / maxLife;
+            if (life < 0.0) {
+                life = 0.0;
             }
             
-            // Decrease opacity slowly
-            opacity -= deltaTime * 0.3; // Fade out over ~3 seconds
+            opacity = life;
             if (opacity < 0.0) {
                 opacity = 0.0;
             }
             
-            // Shard is dead if opacity is 0 or it's fallen off screen
-            return opacity > 0.0 && y < 1000; // Arbitrary screen bottom limit
+            return life > 0.0 && opacity > 0.0;
         }
         
         public double getX() { return x; }
         public double getY() { return y; }
-        public double getRotation() { return rotation; }
-        public javafx.scene.paint.Color getColor() { return color; }
+        public javafx.scene.paint.Color getStartColor() { return startColor; }
+        public javafx.scene.paint.Color getEndColor() { return endColor; }
+        public double getLife() { return life; }
         public double getOpacity() { return opacity; }
     }
     public GameController(GuiController c, Board b) {
@@ -191,8 +169,6 @@ public class GameController implements InputEventListener {
                 scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
                 
-                // Trigger shatter animations for all cleared rows
-                // CRITICAL: Capture board state BEFORE clearing to get block colors
                 int[][] boardBeforeClear = null;
                 if (board.getBoardMatrix() != null) {
                     boardBeforeClear = MatrixOperations.copy(board.getBoardMatrix());
@@ -315,18 +291,11 @@ public class GameController implements InputEventListener {
         return board;
     }
     
-    /**
-     * Trigger a shatter animation for a cleared row (HIGH IMPACT)
-     * Creates a white flash followed by massive explosion of shards
-     * @param gridY The grid row index that was cleared
-     * @param boardBeforeClear The board matrix BEFORE clearing (to get block colors)
-     */
     public void triggerShatter(int gridY, int[][] boardBeforeClear) {
         if (boardBeforeClear == null || gridY < 0 || gridY >= boardBeforeClear.length) {
             return;
         }
         
-        // WHITE FLASH: Create blinding white flash at the cleared row
         activeFlashes.add(new WhiteFlash(gridY));
         
         int[] row = boardBeforeClear[gridY];
@@ -334,93 +303,53 @@ public class GameController implements InputEventListener {
             return;
         }
         
-        final int TILE_SIZE = 20; // BRICK_SIZE from GuiController
-        
-        // Loop through every block in the cleared row
         for (int col = 0; col < row.length; col++) {
             int blockColor = row[col];
             
-            // Only spawn shards for non-zero blocks (occupied cells)
             if (blockColor != 0) {
-                // Get the color of the block and make it brighter
                 Paint blockPaint = viewGuiController.getFillColor(blockColor);
                 javafx.scene.paint.Color blockColorObj;
                 
                 if (blockPaint instanceof javafx.scene.paint.Color) {
-                    blockColorObj = ((javafx.scene.paint.Color) blockPaint).brighter();
+                    blockColorObj = (javafx.scene.paint.Color) blockPaint;
                 } else {
-                    blockColorObj = javafx.scene.paint.Color.WHITE.brighter();
+                    blockColorObj = javafx.scene.paint.Color.WHITE;
                 }
                 
-                // Calculate block center position in grid coordinates
-                // Store as grid coordinates (col, row) - will be converted to pixels in rendering
-                double blockCenterX = col; // Grid column
-                double blockCenterY = gridY - 2; // Grid row (account for 2-row offset in display)
+                double blockCenterX = col;
+                double blockCenterY = gridY - 2;
                 
-                // HIGH IMPACT: Spawn 10-15 shards per block (massive explosion)
-                int shardCount = 10 + (int)(Math.random() * 6); // 10-15 shards
+                int particleCount = 10;
                 
-                for (int i = 0; i < shardCount; i++) {
-                    // EXPLOSIVE velocities: vx range -10 to +10, vy range -15 to -5 (blast upwards)
-                    double velocityX = -10 + Math.random() * 20; // -10 to +10 (wide spread)
-                    double velocityY = -15 + Math.random() * 10; // -15 to -5 (forceful upward blast)
+                for (int i = 0; i < particleCount; i++) {
+                    double velocityX = -20 + Math.random() * 40;
+                    double velocityY = -0.5 + Math.random() * 1.0;
                     
-                    // HIGH rotation speed for visible spinning
-                    double rotationSpeed = -720 + Math.random() * 1440; // -720 to +720 degrees per second (very fast)
+                    double particleX = blockCenterX + (Math.random() - 0.5) * 0.3;
+                    double particleY = blockCenterY + (Math.random() - 0.5) * 0.1;
                     
-                    // Create shard with slight random offset from block center (in grid coordinates)
-                    double shardX = blockCenterX + (Math.random() - 0.5) * 0.5; // Small offset
-                    double shardY = blockCenterY + (Math.random() - 0.5) * 0.5; // Small offset
-                    
-                    // Use white or very bright color for maximum impact
-                    javafx.scene.paint.Color shardColor = javafx.scene.paint.Color.WHITE;
-                    if (Math.random() > 0.3) { // 70% white, 30% bright block color
-                        shardColor = blockColorObj.brighter().brighter(); // Very bright version
-                    }
-                    
-                    activeShards.add(new Shard(shardX, shardY, velocityX, velocityY, rotationSpeed, shardColor));
+                    activeShards.add(new Shard(particleX, particleY, velocityX, velocityY, blockColorObj));
                 }
             }
         }
     }
     
-    /**
-     * Get the list of active shards (for rendering)
-     * @return List of active Shard objects
-     */
     public List<Shard> getActiveShards() {
         return activeShards;
     }
     
-    /**
-     * Get the list of active white flashes (for rendering)
-     * @return List of active WhiteFlash objects
-     */
     public List<WhiteFlash> getActiveFlashes() {
         return activeFlashes;
     }
     
-    /**
-     * Update all active white flashes and remove dead ones
-     * Should be called every frame
-     * @param deltaTime Time elapsed since last update (in seconds)
-     */
     public void updateFlashes(double deltaTime) {
         activeFlashes.removeIf(flash -> !flash.update(deltaTime));
     }
     
-    /**
-     * Update all active shards and remove dead ones
-     * Should be called every frame
-     * @param deltaTime Time elapsed since last update (in seconds)
-     */
     public void updateShards(double deltaTime) {
         activeShards.removeIf(shard -> !shard.update(deltaTime));
     }
     
-    /**
-     * Clear all active shards and flashes (e.g., when starting a new game)
-     */
     public void clearAllShards() {
         activeShards.clear();
         activeFlashes.clear();
