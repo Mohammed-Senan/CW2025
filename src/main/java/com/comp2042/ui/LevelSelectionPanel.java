@@ -35,7 +35,7 @@ public class LevelSelectionPanel extends BorderPane {
         
         try {
             Image backgroundImage = new Image(getClass().getClassLoader().getResource("level.png").toExternalForm());
-            backgroundImageView = new ImageView(backgroundImage);
+            backgroundImageView = new ImageView(backgroundImage); 
             backgroundImageView.fitWidthProperty().bind(this.widthProperty());
             backgroundImageView.fitHeightProperty().bind(this.heightProperty());
             backgroundImageView.setPreserveRatio(false);

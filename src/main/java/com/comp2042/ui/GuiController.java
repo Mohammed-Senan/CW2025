@@ -179,6 +179,9 @@ public class GuiController implements Initializable {
     private StackPane settingsContainer;
 
     @FXML
+    private StackPane tutorialContainer;
+
+    @FXML
     private HBox ghostModeSwitch;
     
     @FXML
@@ -1328,6 +1331,9 @@ public class GuiController implements Initializable {
         if (menuContainer != null) {
             menuContainer.setVisible(false);
         }
+        if (tutorialContainer != null) {
+            tutorialContainer.setVisible(false);
+        }
         if (settingsContainer != null) {
             settingsContainer.setVisible(true);
             
@@ -1354,6 +1360,19 @@ public class GuiController implements Initializable {
             if (musicVolumeSlider != null) {
                 musicVolumeSlider.setValue(GameConfig.getMusicVolume());
             }
+        }
+    }
+
+    @FXML
+    public void showTutorial() {
+        if (menuContainer != null) {
+            menuContainer.setVisible(false);
+        }
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(false);
+        }
+        if (tutorialContainer != null) {
+            tutorialContainer.setVisible(true);
         }
     }
     
@@ -1403,6 +1422,9 @@ public class GuiController implements Initializable {
         if (settingsContainer != null) {
             settingsContainer.setVisible(false);
         }
+        if (tutorialContainer != null) {
+            tutorialContainer.setVisible(false);
+        }
         
         // Show main menu buttons if we're in the main menu
         if (menuContainer != null && mainMenu != null && mainMenu.isVisible()) {
@@ -1412,6 +1434,28 @@ public class GuiController implements Initializable {
         // Show pause menu if we came from pause menu
         if (groupPauseMenu != null && isPause.getValue() == Boolean.TRUE) {
             groupPauseMenu.setVisible(true);
+        }
+    }
+
+    @FXML
+    public void hideTutorial() {
+        if (tutorialContainer != null) {
+            tutorialContainer.setVisible(false);
+        }
+        if (menuContainer != null && mainMenu != null && mainMenu.isVisible()) {
+            menuContainer.setVisible(true);
+        }
+    }
+
+    @FXML
+    public void toggleTutorialOverlay() {
+        if (tutorialContainer == null) {
+            return;
+        }
+        boolean nextState = !tutorialContainer.isVisible();
+        tutorialContainer.setVisible(nextState);
+        if (!nextState && menuContainer != null && mainMenu != null && mainMenu.isVisible()) {
+            menuContainer.setVisible(true);
         }
     }
     
