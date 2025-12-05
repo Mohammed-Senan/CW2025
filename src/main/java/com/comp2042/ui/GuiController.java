@@ -47,6 +47,7 @@ import com.comp2042.logic.Board;
 import com.comp2042.logic.SimpleBoard;
 import com.comp2042.logic.MatrixOperations;
 import com.comp2042.logic.GameConfig;
+import com.comp2042.logic.SoundManager;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -245,14 +246,17 @@ public class GuiController implements Initializable {
                 if (isPause.getValue() == Boolean.FALSE && isGameOver.getValue() == Boolean.FALSE) {
                     if (keyEvent.getCode() == KeyCode.LEFT || keyEvent.getCode() == KeyCode.A) {
                         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+                        SoundManager.getInstance().playMove();
                         keyEvent.consume();
                     }
                     if (keyEvent.getCode() == KeyCode.RIGHT || keyEvent.getCode() == KeyCode.D) {
                         refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+                        SoundManager.getInstance().playMove();
                         keyEvent.consume();
                     }
                     if (keyEvent.getCode() == KeyCode.UP || keyEvent.getCode() == KeyCode.W) {
                         refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                        SoundManager.getInstance().playRotate();
                         keyEvent.consume();
                     }
                     if (keyEvent.getCode() == KeyCode.DOWN || keyEvent.getCode() == KeyCode.S) {
@@ -276,6 +280,8 @@ public class GuiController implements Initializable {
         if (countdownLabel != null) {
             countdownLabel.setVisible(false);
         }
+        
+        SoundManager.getInstance().playMenuMusic();
         if (groupSettings != null) {
             groupSettings.setVisible(false);
         }
@@ -365,6 +371,7 @@ public class GuiController implements Initializable {
             musicVolumeSlider.setValue(GameConfig.getMusicVolume());
             musicVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
                 GameConfig.setMusicVolume(newVal.doubleValue());
+                SoundManager.getInstance().updateMusicVolume();
             });
         }
         
@@ -1149,6 +1156,8 @@ public class GuiController implements Initializable {
     }
 
     public void gameOver() {
+        SoundManager.getInstance().playGameOver();
+        SoundManager.getInstance().stopMusic();
         if (timeLine != null) {
             timeLine.stop();
         }
@@ -1312,12 +1321,15 @@ public class GuiController implements Initializable {
     private void startCountdown() {
         isGameActive = false;
         
+        SoundManager.getInstance().stopMusic();
+        
         if (timeLine != null) {
             timeLine.stop();
         }
         
         if (countdownLabel == null) {
             isGameActive = true;
+            SoundManager.getInstance().playGameMusic();
             if (timeLine != null) {
                 timeLine.play();
             }
@@ -1327,15 +1339,18 @@ public class GuiController implements Initializable {
         countdownLabel.setVisible(true);
         countdownLabel.getStyleClass().remove("go-text");
         countdownLabel.setText("3");
+        SoundManager.getInstance().playCountBlip();
         
         Timeline countdownTimeline = new Timeline();
         
         KeyFrame frame1 = new KeyFrame(Duration.seconds(1.0), e -> {
             countdownLabel.setText("2");
+            SoundManager.getInstance().playCountBlip();
         });
         
         KeyFrame frame2 = new KeyFrame(Duration.seconds(2.0), e -> {
             countdownLabel.setText("1");
+            SoundManager.getInstance().playCountBlip();
         });
         
         KeyFrame frame3 = new KeyFrame(Duration.seconds(3.0), e -> {
@@ -1347,6 +1362,7 @@ public class GuiController implements Initializable {
             countdownLabel.setVisible(false);
             countdownLabel.getStyleClass().remove("go-text");
             isGameActive = true;
+            SoundManager.getInstance().playGameMusic();
             if (timeLine != null) {
                 timeLine.play();
             }
@@ -1487,6 +1503,7 @@ public class GuiController implements Initializable {
         // Show main menu buttons if we're in the main menu
         if (menuContainer != null && mainMenu != null && mainMenu.isVisible()) {
             menuContainer.setVisible(true);
+            SoundManager.getInstance().playMenuMusic();
         }
         
         // Show pause menu if we came from pause menu

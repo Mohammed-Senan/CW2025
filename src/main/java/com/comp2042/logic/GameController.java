@@ -4,6 +4,7 @@ import com.comp2042.event.EventSource;
 import com.comp2042.event.InputEventListener;
 import com.comp2042.event.MoveEvent;
 import com.comp2042.ui.GuiController;
+import com.comp2042.logic.SoundManager;
 import javafx.scene.paint.Paint;
 import java.util.ArrayList;
 import java.util.List;
@@ -168,6 +169,8 @@ public class GameController implements InputEventListener {
             if (clearRow != null && clearRow.getLinesRemoved() > 0) {
                 scoreBonus = LINE_SCORE_MULTIPLIER * clearRow.getLinesRemoved() * clearRow.getLinesRemoved();
                 board.getScore().add(scoreBonus);
+                
+                SoundManager.getInstance().playClear();
                 
                 int[][] boardBeforeClear = null;
                 if (board.getBoardMatrix() != null) {

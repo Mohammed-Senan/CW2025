@@ -19,6 +19,12 @@ public class GameConfig {
     private static double musicVolume = 50.0;
     
     /**
+     * SFX Volume setting - volume level from 0 to 100.
+     * Default: 70 (70%)
+     */
+    private static double sfxVolume = 70.0;
+    
+    /**
      * Check if Ghost Mode is enabled.
      * @return true if ghost mode is enabled, false otherwise
      */
@@ -53,6 +59,28 @@ public class GameConfig {
             musicVolume = 100.0;
         } else {
             musicVolume = volume;
+        }
+    }
+    
+    /**
+     * Get the SFX Volume setting.
+     * @return volume level from 0.0 to 100.0
+     */
+    public static double getSfxVolume() {
+        return sfxVolume;
+    }
+    
+    /**
+     * Set the SFX Volume setting.
+     * @param volume volume level from 0.0 to 100.0
+     */
+    public static void setSfxVolume(double volume) {
+        if (volume < 0.0) {
+            sfxVolume = 0.0;
+        } else if (volume > 100.0) {
+            sfxVolume = 100.0;
+        } else {
+            sfxVolume = volume;
         }
     }
 }
