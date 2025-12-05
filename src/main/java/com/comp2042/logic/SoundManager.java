@@ -52,6 +52,7 @@ public class SoundManager {
             loadSFX("clear", "Sounds/sfx_clear.mp3.mp3");
             loadSFX("gameover", "Sounds/sfx_gameover.mp3.mp3");
             loadSFX("count", "Sounds/sfx_count.mp3.mp3");
+            loadSFX("harddrop", "Sounds/sfx_harddrop.mp3.mp3");
             
         } catch (Exception e) {
             System.err.println("Error loading audio resources: " + e.getMessage());
@@ -66,9 +67,12 @@ public class SoundManager {
                 MediaPlayer sfxPlayer = new MediaPlayer(sfxMedia);
                 sfxPlayer.setVolume(GameConfig.getSfxVolume() / 100.0);
                 sfxPlayers.put(name, sfxPlayer);
+            } else {
+                System.err.println("SFX resource not found: " + resourcePath);
             }
         } catch (Exception e) {
             System.err.println("Error loading SFX " + name + ": " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -117,12 +121,18 @@ public class SoundManager {
         playSFX("count");
     }
     
+    public void playHardDrop() {
+        playSFX("harddrop");
+    }
+    
     private void playSFX(String name) {
         MediaPlayer player = sfxPlayers.get(name);
         if (player != null) {
             player.setVolume(GameConfig.getSfxVolume() / 100.0);
             player.seek(Duration.ZERO);
             player.play();
+        } else {
+            System.err.println("SFX player not found for: " + name);
         }
     }
     
@@ -141,4 +151,5 @@ public class SoundManager {
         }
     }
 }
+
 

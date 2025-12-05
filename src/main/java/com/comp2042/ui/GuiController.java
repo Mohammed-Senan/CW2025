@@ -949,6 +949,8 @@ public class GuiController implements Initializable {
             return;
         }
         
+        SoundManager.getInstance().playHardDrop();
+        
         // Get current brick position from event listener
         // We need to get ViewData from the board, not from onDownEvent
         if (eventListener instanceof GameController) {
