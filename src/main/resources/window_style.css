@@ -414,3 +414,17 @@ GridPane {
     -fx-text-fill: #ff1493;
     -fx-effect: dropshadow(three-pass-box, #ff1493, 8, 0.3, 0, 0);
 }
+
+.countdown-text {
+    -fx-font-family: "Let's go Digital", "Courier New", monospace;
+    -fx-font-size: 100px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff1493;
+    -fx-effect: dropshadow(three-pass-box, #ff1493, 12, 0.4, 0, 0);
+    -fx-alignment: center;
+}
+
+.countdown-text.go-text {
+    -fx-text-fill: #00ff00;
+    -fx-effect: dropshadow(three-pass-box, #00ff00, 15, 0.5, 0, 0);
+}

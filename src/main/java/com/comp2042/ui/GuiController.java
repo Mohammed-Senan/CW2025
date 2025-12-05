@@ -199,6 +199,9 @@ public class GuiController implements Initializable {
     @FXML
     private Slider musicVolumeSlider;
 
+    @FXML
+    private Label countdownLabel;
+
     private Rectangle[][] displayMatrix;
 
     private int[][] currentBoardMatrix;
@@ -213,6 +216,8 @@ public class GuiController implements Initializable {
     private final BooleanProperty isPause = new SimpleBooleanProperty();
 
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
+    
+    private boolean isGameActive = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -232,6 +237,9 @@ public class GuiController implements Initializable {
                 }
 
                 if (isPause.getValue() == Boolean.TRUE) {
+                    return;
+                }
+                if (!isGameActive) {
                     return;
                 }
                 if (isPause.getValue() == Boolean.FALSE && isGameOver.getValue() == Boolean.FALSE) {
@@ -265,6 +273,9 @@ public class GuiController implements Initializable {
         groupPauseMenu.setVisible(false);
         groupLevelSelection.setVisible(false);
         groupLevelComplete.setVisible(false);
+        if (countdownLabel != null) {
+            countdownLabel.setVisible(false);
+        }
         if (groupSettings != null) {
             groupSettings.setVisible(false);
         }
@@ -1220,9 +1231,10 @@ public class GuiController implements Initializable {
         groupPauseMenu.setVisible(false);
         eventListener.createNewGame();
         gamePanel.requestFocus();
-        timeLine.play();
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
+        
+        startCountdown();
         gamePanel.setOpacity(1.0);
     }
 
@@ -1291,11 +1303,57 @@ public class GuiController implements Initializable {
             scoreNeedValue.setVisible(false);
         }
         gamePanel.requestFocus();
-        if (timeLine != null) {
-            timeLine.play();
-        }
         isPause.setValue(Boolean.FALSE);
         gamePanel.setOpacity(1.0);
+        
+        startCountdown();
+    }
+    
+    private void startCountdown() {
+        isGameActive = false;
+        
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        
+        if (countdownLabel == null) {
+            isGameActive = true;
+            if (timeLine != null) {
+                timeLine.play();
+            }
+            return;
+        }
+        
+        countdownLabel.setVisible(true);
+        countdownLabel.getStyleClass().remove("go-text");
+        countdownLabel.setText("3");
+        
+        Timeline countdownTimeline = new Timeline();
+        
+        KeyFrame frame1 = new KeyFrame(Duration.seconds(1.0), e -> {
+            countdownLabel.setText("2");
+        });
+        
+        KeyFrame frame2 = new KeyFrame(Duration.seconds(2.0), e -> {
+            countdownLabel.setText("1");
+        });
+        
+        KeyFrame frame3 = new KeyFrame(Duration.seconds(3.0), e -> {
+            countdownLabel.setText("GO!");
+            countdownLabel.getStyleClass().add("go-text");
+        });
+        
+        KeyFrame frame4 = new KeyFrame(Duration.seconds(3.5), e -> {
+            countdownLabel.setVisible(false);
+            countdownLabel.getStyleClass().remove("go-text");
+            isGameActive = true;
+            if (timeLine != null) {
+                timeLine.play();
+            }
+        });
+        
+        countdownTimeline.getKeyFrames().addAll(frame1, frame2, frame3, frame4);
+        countdownTimeline.play();
     }
     
     @FXML
@@ -1579,6 +1637,8 @@ public class GuiController implements Initializable {
         isGameOver.setValue(Boolean.FALSE);
         gamePanel.setOpacity(1.0);
         gamePanel.requestFocus();
+        
+        startCountdown();
     }
     
     @FXML

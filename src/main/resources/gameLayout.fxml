@@ -59,6 +59,7 @@
                     </BorderPane>
                     <Pane fx:id="laserContainer" styleClass="laser-container" prefWidth="300" prefHeight="500" mouseTransparent="true"/>
                 </Pane>
+                <Label fx:id="countdownLabel" text="3" styleClass="countdown-text" visible="false" alignment="CENTER"/>
             </StackPane>
         </center>
 
