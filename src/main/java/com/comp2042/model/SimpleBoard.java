@@ -1,9 +1,10 @@
-package com.comp2042.logic;
+package com.comp2042.model;
 
 import com.comp2042.event.NextShapeInfo;
-import com.comp2042.logic.bricks.Brick;
-import com.comp2042.logic.bricks.BrickGenerator;
-import com.comp2042.logic.bricks.RandomBrickGenerator;
+import com.comp2042.model.bricks.Brick;
+import com.comp2042.controller.BrickGenerator;
+import com.comp2042.controller.RandomBrickGenerator;
+import com.comp2042.controller.BrickRotator;
 
 import java.awt.*;
 
@@ -84,7 +85,8 @@ public class SimpleBoard implements Board {
 
     @Override
     public boolean createNewBrick() {
-        Brick currentBrick = brickGenerator.getBrick();
+        // Use Factory Pattern to create a random block - Controller doesn't need to know how blocks are selected
+        Brick currentBrick = TetrominoFactory.createRandomBlock();
         brickRotator.setBrick(currentBrick);
         currentOffset = new Point(4, 0);
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
@@ -122,14 +124,12 @@ public class SimpleBoard implements Board {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
         currentGameMatrix = clearRow.getNewMatrix();
         return clearRow;
-
     }
 
     @Override
     public Score getScore() {
         return score;
     }
-
 
     @Override
     public void newGame() {

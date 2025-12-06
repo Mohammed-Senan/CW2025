@@ -1,11 +1,11 @@
-package com.comp2042.logic.bricks;
+package com.comp2042.model.bricks;
 
-import com.comp2042.logic.MatrixOperations;
+import com.comp2042.model.MatrixOperations;
 
 import java.util.ArrayList;
 import java.util.List;
 
-final class TBrick implements Brick {
+public final class TBrick implements Brick {
 
     private final List<int[][]> brickMatrix = new ArrayList<>();
 
@@ -41,3 +41,4 @@ final class TBrick implements Brick {
         return MatrixOperations.deepCopyList(brickMatrix);
     }
 }
+

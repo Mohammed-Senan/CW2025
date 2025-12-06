@@ -1,5 +1,6 @@
-package com.comp2042.logic;
+package com.comp2042.controller;
 
+import com.comp2042.model.LevelConfig;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 

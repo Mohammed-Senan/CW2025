@@ -1,13 +1,13 @@
 package com.comp2042;
 
-import com.comp2042.app.Main;
+import com.comp2042.main.Main;
 import com.comp2042.event.EventSource;
 import com.comp2042.event.EventType;
 import com.comp2042.event.MoveEvent;
-import com.comp2042.logic.Board;
-import com.comp2042.logic.GameController;
-import com.comp2042.logic.Score;
-import com.comp2042.logic.SimpleBoard;
+import com.comp2042.model.Board;
+import com.comp2042.controller.GameController;
+import com.comp2042.model.Score;
+import com.comp2042.model.SimpleBoard;
 import com.comp2042.ui.GuiController;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ public class GameTest {
     @Test
     public void testLineClearingAddsCorrectScore() {
         int[][] emptyMatrix = new int[10][20];
-        com.comp2042.logic.ClearRow fakeClearRow = new com.comp2042.logic.ClearRow(2, emptyMatrix);
+        com.comp2042.model.ClearRow fakeClearRow = new com.comp2042.model.ClearRow(2, emptyMatrix, new java.util.ArrayList<>());
 
         when(mockBoard.moveBrickDown()).thenReturn(false);
         when(mockBoard.clearRows()).thenReturn(fakeClearRow);

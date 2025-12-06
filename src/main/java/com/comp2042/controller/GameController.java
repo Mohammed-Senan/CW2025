@@ -1,10 +1,14 @@
-package com.comp2042.logic;
+package com.comp2042.controller;
 
 import com.comp2042.event.EventSource;
 import com.comp2042.event.InputEventListener;
 import com.comp2042.event.MoveEvent;
 import com.comp2042.ui.GuiController;
-import com.comp2042.logic.SoundManager;
+import com.comp2042.model.Board;
+import com.comp2042.model.ClearRow;
+import com.comp2042.model.DownData;
+import com.comp2042.model.ViewData;
+import com.comp2042.model.MatrixOperations;
 import javafx.scene.paint.Paint;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,10 +102,12 @@ public class GameController implements InputEventListener {
         public double getLife() { return life; }
         public double getOpacity() { return opacity; }
     }
+    
     public GameController(GuiController c, Board b) {
         viewGuiController = c;
         this.board = b;
     }
+    
     public void initGame() {
         board.createNewBrick();
         viewGuiController.setEventListener(this);
@@ -236,7 +242,7 @@ public class GameController implements InputEventListener {
                 }
             }
 
-                viewGuiController.refreshGameBackground(board.getBoardMatrix());
+            viewGuiController.refreshGameBackground(board.getBoardMatrix());
 
         } else {
             if (event.getEventSource() == EventSource.USER) {
@@ -264,7 +270,6 @@ public class GameController implements InputEventListener {
         board.rotateLeftBrick();
         return board.getViewData();
     }
-
 
     @Override
     public void createNewGame() {

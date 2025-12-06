@@ -4,8 +4,8 @@ import com.comp2042.event.EventSource;
 import com.comp2042.event.EventType;
 import com.comp2042.event.InputEventListener;
 import com.comp2042.event.MoveEvent;
-import com.comp2042.logic.DownData;
-import com.comp2042.logic.ViewData;
+import com.comp2042.model.DownData;
+import com.comp2042.model.ViewData;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
@@ -41,13 +41,14 @@ import java.util.ResourceBundle;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.control.Slider;
-import com.comp2042.logic.HighScoreManager;
-import com.comp2042.logic.GameController;
-import com.comp2042.logic.Board;
-import com.comp2042.logic.SimpleBoard;
-import com.comp2042.logic.MatrixOperations;
-import com.comp2042.logic.GameConfig;
-import com.comp2042.logic.SoundManager;
+import com.comp2042.controller.HighScoreManager;
+import com.comp2042.controller.GameController;
+import com.comp2042.controller.LevelManager;
+import com.comp2042.model.Board;
+import com.comp2042.model.SimpleBoard;
+import com.comp2042.model.MatrixOperations;
+import com.comp2042.model.GameConfig;
+import com.comp2042.controller.SoundManager;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -1081,7 +1082,7 @@ public class GuiController implements Initializable {
         scoreValue.textProperty().bind(integerProperty.asString("Score: %d"));
     }
     
-    public void bindLevelInfo(com.comp2042.logic.LevelManager levelManager) {
+    public void bindLevelInfo(LevelManager levelManager) {
         if (levelValue != null && blocksRemainingValue != null && scoreNeedValue != null) {
             levelValue.setVisible(true);
             blocksRemainingValue.setVisible(true);

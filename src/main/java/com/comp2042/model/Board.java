@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.model;
 
 public interface Board {
 

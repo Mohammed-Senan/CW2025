@@ -1,5 +1,6 @@
-package com.comp2042.logic;
+package com.comp2042.controller;
 
+import com.comp2042.model.GameConfig;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -151,5 +152,4 @@ public class SoundManager {
         }
     }
 }
-
 

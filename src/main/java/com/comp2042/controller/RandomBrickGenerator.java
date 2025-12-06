@@ -1,4 +1,13 @@
-package com.comp2042.logic.bricks;
+package com.comp2042.controller;
+
+import com.comp2042.model.bricks.Brick;
+import com.comp2042.model.bricks.IBrick;
+import com.comp2042.model.bricks.JBrick;
+import com.comp2042.model.bricks.LBrick;
+import com.comp2042.model.bricks.OBrick;
+import com.comp2042.model.bricks.SBrick;
+import com.comp2042.model.bricks.TBrick;
+import com.comp2042.model.bricks.ZBrick;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -38,3 +47,4 @@ public class RandomBrickGenerator implements BrickGenerator {
         return nextBricks.peek();
     }
 }
+

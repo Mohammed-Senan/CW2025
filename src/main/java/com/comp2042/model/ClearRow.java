@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.model;
 
 import java.util.List;
 
@@ -27,3 +27,4 @@ public final class ClearRow {
         return clearedRowIndices;
     }
 }
+

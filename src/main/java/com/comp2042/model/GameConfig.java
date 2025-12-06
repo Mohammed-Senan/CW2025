@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.model;
 
 /**
  * GameConfig - Static configuration class for game settings.
@@ -84,4 +84,3 @@ public class GameConfig {
         }
     }
 }
-

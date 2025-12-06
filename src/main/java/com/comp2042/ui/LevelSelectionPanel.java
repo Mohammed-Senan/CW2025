@@ -1,7 +1,7 @@
 package com.comp2042.ui;
 
-import com.comp2042.logic.LevelConfig;
-import com.comp2042.logic.LevelManager;
+import com.comp2042.model.LevelConfig;
+import com.comp2042.controller.LevelManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;

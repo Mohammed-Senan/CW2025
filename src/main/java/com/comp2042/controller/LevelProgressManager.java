@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.controller;
 
 import java.io.*;
 import java.util.Properties;
@@ -50,14 +50,3 @@ public class LevelProgressManager {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-

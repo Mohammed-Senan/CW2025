@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.controller;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,3 +34,4 @@ public class HighScoreManager {
         }
     }
 }
+

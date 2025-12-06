@@ -1,4 +1,4 @@
-package com.comp2042.logic;
+package com.comp2042.model;
 
 public final class DownData {
     private final ClearRow clearRow;
@@ -23,3 +23,4 @@ public final class DownData {
         return scoreBonus;
     }
 }
+

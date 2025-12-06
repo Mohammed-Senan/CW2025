@@ -1,6 +1,6 @@
 package com.comp2042.event;
 
-import com.comp2042.logic.MatrixOperations;
+import com.comp2042.model.MatrixOperations;
 
 public final class NextShapeInfo {
 

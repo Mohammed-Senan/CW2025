@@ -1,8 +1,8 @@
-package com.comp2042.app;
+package com.comp2042.main;
 
-import com.comp2042.logic.Board;
-import com.comp2042.logic.GameController;
-import com.comp2042.logic.SimpleBoard;
+import com.comp2042.model.Board;
+import com.comp2042.controller.GameController;
+import com.comp2042.model.SimpleBoard;
 import com.comp2042.ui.GuiController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -38,3 +38,4 @@ public class Main extends Application {
         launch(args);
     }
 }
+
