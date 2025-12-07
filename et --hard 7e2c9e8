@@ -1,0 +1,33 @@
+[33m7e2c9e8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mreadme[m[33m, [m[1;31morigin/refactor-architecture[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mrefactor-architecture[m[33m, [m[1;32mmaster[m[33m)[m Refactor: Implemented Factory Design Pattern for block creation
+[33md4351f2[m[33m ([m[1;31morigin/feature-audio[m[33m, [m[1;32mfeature-audio[m[33m)[m Feat: Added hard drop sound effect
+[33mc2f073a[m Feat: Implemented SoundManager with background music and SFX
+[33me011c43[m[33m ([m[1;31morigin/feature-countdown[m[33m, [m[1;32mfeature-countdown[m[33m)[m Feat: Added 3-2-1 neon countdown animation before game start
+[33m43d91a3[m[33m ([m[1;31morigin/feature-tutorial[m[33m, [m[1;32mfeature-tutorial[m[33m)[m Feat: Implemented Controls button and fixed environment settings
+[33m8b46749[m[33m ([m[1;31morigin/feature-particles[m[33m, [m[1;32mfeature-particles[m[33m)[m Refactor: Updated explosion effect to a clean horizontal burst
+[33mc29e136[m Feat: Added new visual effects for line clearing
+[33m7d22b14[m[33m ([m[1;31morigin/add-ghost-block[m[33m, [m[1;32madd-ghost-block[m[33m)[m Feat: Added Ghost Mode logic, Settings Menu with Toggle/Volume, and Pause Menu integration
+[33m6f66004[m Added ghost block feature
+[33m147bc24[m[33m ([m[1;32mfix-window-and-background[m[33m)[m UI/Feature: Updated window size, added score boxes, new background, and next block preview
+[33me323864[m[33m ([m[1;31morigin/fix-pause-menu[m[33m, [m[1;32mfix-pause-menu[m[33m)[m Fix: Improved Pause Menu and Level Menu functionality
+[33m9b7c004[m[33m ([m[1;31morigin/feature-levels[m[33m, [m[1;32mfeature-levels[m[33m)[m Add: Implemented 10 levels and added background for level button
+[33mca0e48c[m Add: Created Level label in UI and connected it to controller
+[33m3ec8c1a[m Update: Changed Main Menu background image
+[33mc5e6e94[m Add: Visual Pause Menu with Resume and Quit buttons
+[33m0630aa4[m UI Update: Increased window size, added new background, and improved button styles with hover effects
+[33m5756a50[m[33m ([m[1;31morigin/feature-main-menu[m[33m, [m[1;32mfeature-main-menu[m[33m)[m Add: Updated Main Menu background image
+[33m7a70076[m Add: Fully functional Main Menu with start/quit buttons
+[33mc273e4f[m Add: Implemented High Score saving and UI display
+[33m06c2dcd[m Add: Implemented fully functional Main Menu with start/quit buttons
+[33mace95df[m[33m ([m[1;31morigin/feature-high-score[m[33m, [m[1;32mfeature-high-score[m[33m)[m Add: Implemented High Score saving system and fixed game over logic
+[33mcc594a7[m[33m ([m[1;31morigin/feature-pause[m[33m, [m[1;32mfeature-pause[m[33m)[m Add: Implemented Pause feature (Press P to pause)
+[33md9baceb[m Fix: Restored standard Tetris board size and window layout
+[33mdbbdd33[m[33m ([m[1;31morigin/fix-gameplay-bugs[m[33m, [m[1;32mfix-ui-centering[m[33m, [m[1;32mfix-gameplay-bugs[m[33m)[m Fix: Corrected block spawn position to top of board
+[33m81bb531[m[33m ([m[1;32mgame-test[m[33m)[m Refactor: Added meaningful JUnit test for GameController scoring
+[33mc52ea6e[m WIP: Added Mockito and first draft of GameTest
+[33m285c321[m[33m ([m[1;32mrefactor-srp-board[m[33m)[m Refactor: Replace magic numbers for scoring with named constants
+[33mb0a83f7[m[33m ([m[1;31morigin/refactor-srp-board[m[33m)[m Refactor: Fix score logic and bug in GameController
+[33m7e7d2c4[m Refactor: Fix score notification bug after moving logic
+[33ma4b0b56[m Refactor: Moved score logic from MatrixOperations to GameController
+[33mf00a346[m[33m ([m[1;31morigin/refactor-packaging[m[33m, [m[1;32mrefactor-packaging[m[33m)[m Refactor: Organized files into logic, ui, event and app  packages
+[33m8c07205[m[33m ([m[1;31morigin/refactoring-bugs[m[33m, [m[1;32mrefactoring-bugs[m[33m)[m Final project setup and cleanup
+[33mdc55722[m Initial commit

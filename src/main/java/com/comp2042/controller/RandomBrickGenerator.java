@@ -15,12 +15,21 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Default implementation of {@link BrickGenerator} that produces a random
+ * sequence of tetrominoes and maintains a short queue used for the "Next"
+ * piece preview.
+ */
 public class RandomBrickGenerator implements BrickGenerator {
 
     private final List<Brick> brickList;
 
     private final Deque<Brick> nextBricks = new ArrayDeque<>();
 
+    /**
+     * Initializes the generator with a full set of tetromino types and
+     * seeds the queue with two random entries.
+     */
     public RandomBrickGenerator() {
         brickList = new ArrayList<>();
         brickList.add(new IBrick());
@@ -34,6 +43,12 @@ public class RandomBrickGenerator implements BrickGenerator {
         nextBricks.add(brickList.get(ThreadLocalRandom.current().nextInt(brickList.size())));
     }
 
+    /**
+     * Returns and removes the next brick from the queue, replenishing the
+     * queue with a new random brick if needed.
+     *
+     * @return the next brick to spawn on the board
+     */
     @Override
     public Brick getBrick() {
         if (nextBricks.size() <= 1) {
@@ -42,6 +57,12 @@ public class RandomBrickGenerator implements BrickGenerator {
         return nextBricks.poll();
     }
 
+    /**
+     * Returns, without removing it, the upcoming brick that will follow the
+     * current active piece.
+     *
+     * @return the next brick in the queue, or {@code null} if none is queued
+     */
     @Override
     public Brick getNextBrick() {
         return nextBricks.peek();

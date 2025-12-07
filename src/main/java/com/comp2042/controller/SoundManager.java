@@ -9,31 +9,47 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Singleton manager responsible for loading and controlling background music
+ * and sound effects for the game. Volumes are driven by {@link GameConfig}.
+ */
 public class SoundManager {
-    
+
     private static SoundManager instance;
-    
+
     private MediaPlayer menuMusicPlayer;
     private MediaPlayer gameMusicPlayer;
     private Map<String, MediaPlayer> sfxPlayers;
-    
+
+    /**
+     * Creates a new sound manager instance and loads all configured audio resources.
+     * Use {@link #getInstance()} to access the shared singleton.
+     */
     private SoundManager() {
         sfxPlayers = new HashMap<>();
         loadAudioResources();
     }
-    
+
+    /**
+     * Returns the singleton instance of the sound manager, creating it on first use.
+     *
+     * @return the global {@code SoundManager} instance
+     */
     public static SoundManager getInstance() {
         if (instance == null) {
             instance = new SoundManager();
         }
         return instance;
     }
-    
+
+    /**
+     * Loads all configured audio resources, including background music and sound effects.
+     */
     private void loadAudioResources() {
         try {
             URL menuMusicUrl = getClass().getClassLoader().getResource("Sounds/bgm_menu.mp3.mp3");
             URL gameMusicUrl = getClass().getClassLoader().getResource("Sounds/bgm_game.mp3.mp3");
-            
+
             if (menuMusicUrl != null) {
                 Media menuMusic = new Media(menuMusicUrl.toExternalForm());
                 menuMusicPlayer = new MediaPlayer(menuMusic);
@@ -60,6 +76,12 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Loads a single sound effect resource and registers it under the given name.
+     *
+     * @param name         logical identifier for the sound effect
+     * @param resourcePath classpath-relative path to the audio resource
+     */
     private void loadSFX(String name, String resourcePath) {
         try {
             URL sfxUrl = getClass().getClassLoader().getResource(resourcePath);
@@ -77,6 +99,10 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Starts playback of the menu background music, stopping any currently
+     * playing game music.
+     */
     public void playMenuMusic() {
         stopMusic();
         if (menuMusicPlayer != null) {
@@ -85,6 +111,10 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Starts playback of the in-game background music, stopping any currently
+     * playing menu music.
+     */
     public void playGameMusic() {
         stopMusic();
         if (gameMusicPlayer != null) {
@@ -93,6 +123,9 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Stops all currently playing background music tracks.
+     */
     public void stopMusic() {
         if (menuMusicPlayer != null) {
             menuMusicPlayer.stop();
@@ -102,30 +135,54 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Plays the sound effect associated with a piece move action.
+     */
     public void playMove() {
         playSFX("move");
     }
     
+    /**
+     * Plays the sound effect associated with a piece rotation action.
+     */
     public void playRotate() {
         playSFX("rotate");
     }
     
+    /**
+     * Plays the sound effect triggered when one or more lines are cleared.
+     */
     public void playClear() {
         playSFX("clear");
     }
     
+    /**
+     * Plays the sound effect triggered when the game ends.
+     */
     public void playGameOver() {
         playSFX("gameover");
     }
     
+    /**
+     * Plays the sound effect used for countdown or UI tick feedback.
+     */
     public void playCountBlip() {
         playSFX("count");
     }
     
+    /**
+     * Plays the sound effect associated with a hard drop action.
+     */
     public void playHardDrop() {
         playSFX("harddrop");
     }
     
+    /**
+     * Plays a named sound effect if it has been successfully loaded.
+     * Resets playback to the beginning before playing.
+     *
+     * @param name logical identifier of the sound effect to play
+     */
     private void playSFX(String name) {
         MediaPlayer player = sfxPlayers.get(name);
         if (player != null) {
@@ -137,6 +194,10 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Applies the current music volume from {@link GameConfig} to all
+     * background music players.
+     */
     public void updateMusicVolume() {
         if (menuMusicPlayer != null) {
             menuMusicPlayer.setVolume(GameConfig.getMusicVolume() / 100.0);
@@ -146,6 +207,10 @@ public class SoundManager {
         }
     }
     
+    /**
+     * Applies the current sound-effects volume from {@link GameConfig} to
+     * all loaded sound effect players.
+     */
     public void updateSfxVolume() {
         for (MediaPlayer player : sfxPlayers.values()) {
             player.setVolume(GameConfig.getSfxVolume() / 100.0);

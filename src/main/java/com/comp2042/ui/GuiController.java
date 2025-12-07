@@ -1299,6 +1299,13 @@ public class GuiController implements Initializable {
         if (brickPanel != null) {
             brickPanel.setVisible(true);
         }
+        // Ensure HUD panels (including score and next block) are visible
+        if (hudVboxLeft != null) {
+            hudVboxLeft.setVisible(true);
+        }
+        if (hudVboxRight != null) {
+            hudVboxRight.setVisible(true);
+        }
         if (scoreValue != null) {
             scoreValue.setVisible(true);
         }

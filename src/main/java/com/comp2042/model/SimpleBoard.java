@@ -85,8 +85,9 @@ public class SimpleBoard implements Board {
 
     @Override
     public boolean createNewBrick() {
-        // Use Factory Pattern to create a random block - Controller doesn't need to know how blocks are selected
-        Brick currentBrick = TetrominoFactory.createRandomBlock();
+        // Pull the next brick from the queued generator so that the "next"
+        // preview in the UI stays in sync with the active piece.
+        Brick currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
         currentOffset = new Point(4, 0);
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());

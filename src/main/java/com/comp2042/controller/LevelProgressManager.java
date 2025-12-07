@@ -3,15 +3,27 @@ package com.comp2042.controller;
 import java.io.*;
 import java.util.Properties;
 
+/**
+ * Persists and restores the player's level progression so that unlocked
+ * levels remain available across game sessions.
+ */
 public class LevelProgressManager {
     private static final String PROGRESS_FILE = "level_progress.properties";
     private static final String HIGHEST_LEVEL_KEY = "highestLevelUnlocked";
     private int highestLevelUnlocked = 1; // Default: Level 1 unlocked
     
+    /**
+     * Constructs a new progress manager and loads any existing progress
+     * from the backing properties file.
+     */
     public LevelProgressManager() {
         loadProgress();
     }
     
+    /**
+     * Loads the highest unlocked level from the progress file if it exists.
+     * If loading fails, the progression falls back to level 1.
+     */
     public void loadProgress() {
         Properties props = new Properties();
         File file = new File(PROGRESS_FILE);
@@ -28,6 +40,11 @@ public class LevelProgressManager {
         }
     }
     
+    /**
+     * Saves the highest unlocked level to the progress file.
+     *
+     * @param highestLevel the maximum level the player has unlocked
+     */
     public void saveProgress(int highestLevel) {
         highestLevelUnlocked = highestLevel;
         Properties props = new Properties();
@@ -40,10 +57,22 @@ public class LevelProgressManager {
         }
     }
     
+    /**
+     * Returns the highest level that has been unlocked according to the
+     * stored progression data.
+     *
+     * @return the maximum unlocked level index
+     */
     public int getHighestLevelUnlocked() {
         return highestLevelUnlocked;
     }
     
+    /**
+     * Marks a level as unlocked if it is higher than the currently stored
+     * value, and persists the updated progression.
+     *
+     * @param level the new level to unlock
+     */
     public void unlockLevel(int level) {
         if (level > highestLevelUnlocked) {
             saveProgress(level);
